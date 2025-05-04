@@ -5,26 +5,27 @@ import { usePathname } from 'next/navigation';
 import {
   Users, Calendar, Image, Award, ChevronRight,
   ChevronLeft, BarChart, Settings, DollarSign,
-  Home, Info, LayoutList, NewspaperIcon, Mail
+  Home, Info, LayoutList, NewspaperIcon, Mail, Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const pathname = usePathname(); // Usando o hook usePathname do Next.js para obter o caminho atual
+  const [siteMenuOpen, setSiteMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
   };
 
-  const menuItems = [
+  const toggleSiteMenu = () => {
+    setSiteMenuOpen(!siteMenuOpen);
+  };
+
+  // Menu de administração
+  const adminMenuItems = [
     { name: 'Dashboard', icon: BarChart, path: '/' },
     { name: 'Home', icon: Home, path: '/admin' },
-    { name: 'Sobre', icon: Info, path: '/sobre' },
-    { name: 'Funcionalidades', icon: LayoutList, path: '/funcionalidades' },
-    { name: 'Preços', icon: DollarSign, path: '/precos' },
-    { name: 'Blog', icon: NewspaperIcon, path: '/blog' },
-    { name: 'Contactos', icon: Mail, path: '/contactos' },
     { name: 'Atletas', icon: Users, path: '/atletas' },
     { name: 'Planos', icon: DollarSign, path: '/planos' },
     { name: 'Eventos', icon: Calendar, path: '/eventos' },
@@ -32,6 +33,35 @@ export function Sidebar() {
     { name: 'Destaques', icon: Award, path: '/destaques' },
     { name: 'Configurações', icon: Settings, path: '/configuracoes' },
   ];
+
+  // Menu do site
+  const siteMenuItems = [
+    { name: 'Sobre', icon: Info, path: '/sobre' },
+    { name: 'Funcionalidades', icon: LayoutList, path: '/funcionalidades' },
+    { name: 'Preços', icon: DollarSign, path: '/precos' },
+    { name: 'Blog', icon: NewspaperIcon, path: '/blog' },
+    { name: 'Contactos', icon: Mail, path: '/contactos' },
+  ];
+
+  const renderMenuItem = (item) => {
+    const isActive = pathname === item.path;
+
+    return (
+      <Link
+        key={item.name}
+        href={item.path}
+        className={cn(
+          "flex items-center px-4 py-3 gap-3 text-white transition-colors",
+          isActive
+            ? "bg-white/20 font-semibold"
+            : "hover:bg-white/10"
+        )}
+      >
+        <item.icon size={20} />
+        {!collapsed && <span>{item.name}</span>}
+      </Link>
+    );
+  };
 
   return (
     <aside
@@ -53,27 +83,58 @@ export function Sidebar() {
         </button>
       </div>
 
-      <div className="flex-1 py-8 flex flex-col gap-1">
-        {menuItems.map((item) => {
-          // Verificar se o caminho atual corresponde ao item do menu
-          const isActive = pathname === item.path;
+      <div className="flex-1 py-4 flex flex-col">
+        {/* Seção de Administração */}
+        <div className="mb-2">
+          {!collapsed && (
+            <h3 className="text-xs uppercase tracking-wider text-white/60 px-4 py-2">
+              Administração
+            </h3>
+          )}
+          <div className="flex flex-col gap-1">
+            {adminMenuItems.map(renderMenuItem)}
+          </div>
+        </div>
 
-          return (
-            <Link
-              key={item.name}
-              href={item.path}
-              className={cn(
-                "flex items-center px-4 py-3 gap-3 text-white transition-colors",
-                isActive
-                  ? "bg-white/20 font-semibold"
-                  : "hover:bg-white/10"
-              )}
-            >
-              <item.icon size={20} />
-              {!collapsed && <span>{item.name}</span>}
-            </Link>
-          );
-        })}
+        {/* Seção do Site */}
+        <div>
+          <button
+            onClick={toggleSiteMenu}
+            className={cn(
+              "w-full flex items-center px-4 py-3 gap-3 text-white transition-colors hover:bg-white/10",
+              pathname.includes('/sobre') ||
+                pathname.includes('/funcionalidades') ||
+                pathname.includes('/precos') ||
+                pathname.includes('/blog') ||
+                pathname.includes('/contactos')
+                ? "bg-white/20 font-semibold"
+                : ""
+            )}
+          >
+            <Globe size={20} />
+            {!collapsed && (
+              <>
+                <span>Site</span>
+                <ChevronRight
+                  size={16}
+                  className={cn(
+                    "ml-auto transition-transform",
+                    siteMenuOpen && "transform rotate-90"
+                  )}
+                />
+              </>
+            )}
+          </button>
+
+          {(siteMenuOpen || collapsed) && (
+            <div className={cn(
+              "flex flex-col gap-1",
+              collapsed ? "pl-0" : "pl-4"
+            )}>
+              {siteMenuItems.map(renderMenuItem)}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-4 border-t border-mgm-blue-dark">
