@@ -1,0 +1,15 @@
+.preloader-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #0d1b2a;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  font-size: 80px;
+  font-weight: bold;
+  color: #00f5d4;
+}

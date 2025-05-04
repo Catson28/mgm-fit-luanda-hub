@@ -1,0 +1,38 @@
+{
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "XXX",
+    "[ ]",
+    "[x]",
+    "TODO"
+  ],
+  "todo-tree.highlights.useColourScheme": true,
+  "todo-tree.highlights.customHighlight": {
+    "TODO": {
+      "icon": "check", // Ícone específico para TODO
+      "foreground": "green", // Cor do texto para TODO
+      "iconColour": "yellow" // Cor do ícone para TODO
+    },
+    "BUG": {
+      "icon": "bug"
+    },
+    "HACK": {
+      "icon": "tools"
+    },
+    "FIXME": {
+      "icon": "flame",
+      "iconColour": "green"
+    },
+    "XXX": {
+      "icon": "x"
+    },
+    "[ ]": {
+      "icon": "issue-draft"
+    },
+    "[x]": {
+      "icon": "issue-closed"
+    }
+  }
+}

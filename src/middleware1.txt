@@ -1,0 +1,136 @@
+// src/middleware.ts
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import {
+  DEFAULT_LOGIN_REDIRECT,
+  apiAuthPrefix,
+  authRoutes,
+  publicRoutes,
+} from "@/routes";
+
+// Interface for JWT payload
+interface JwtPayload {
+  id: string;
+  email: string;
+  name?: string;
+  roles?: Array<{
+    id: string;
+    name: string;
+    permissions: Array<{
+      id: string;
+      name: string;
+      type: string;
+      resource: string;
+    }>
+  }>;
+  exp?: number;
+  iat?: number;
+}
+
+// Function to verify token
+const verifyToken = (token: string): JwtPayload | null => {
+  try {
+    const secretKey = process.env.JWT_SECRET_KEY;
+    if (!secretKey) {
+      console.error("JWT_SECRET_KEY is not defined in environment variables");
+      return null;
+    }
+
+    const payload = jwt.verify(token, secretKey) as JwtPayload;
+    return payload;
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return null;
+  }
+};
+
+// Check if user has specific permission
+export const hasPermission = (token: string, resource: string, type: string): boolean => {
+  const payload = verifyToken(token);
+  if (!payload || !payload.roles) return false;
+
+  return payload.roles.some(role =>
+    role.permissions.some(
+      permission => permission.resource === resource && permission.type === type
+    )
+  );
+};
+
+// Check if user has specific role
+export const hasRole = (token: string, roleName: string): boolean => {
+  const payload = verifyToken(token);
+  if (!payload || !payload.roles) return false;
+
+  return payload.roles.some(role => role.name === roleName);
+};
+
+// Middleware function
+export function middleware(req: NextRequest) {
+  const { nextUrl } = req;
+  const token = req.cookies.get('accessToken')?.value;
+  const isLoggedIn = !!token && verifyToken(token) !== null;
+
+  // Rotas excluídas do middleware (ex: API de envio de e-mail)
+  const isExcludedRoute = nextUrl.pathname === '/api/send-test-email';
+
+  if (isExcludedRoute) {
+    return; // Ignora a rota excluída
+  }
+
+  // Verifica se a rota é uma rota de API de autenticação
+  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+
+  if (isApiAuthRoute) {
+    return; // Permite acesso direto a rotas de API de autenticação
+  }
+
+  // Verifica se a rota é uma rota de autenticação (login, registro, etc.)
+  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+
+  if (isAuthRoute) {
+    if (isLoggedIn) {
+      // Se o usuário já está logado, redireciona para a página padrão após o login
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+    }
+    return; // Permite acesso a rotas de autenticação para usuários não logados
+  }
+
+  // Verifica se a rota é pública
+  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+
+  if (!isLoggedIn && !isPublicRoute) {
+    // Se o usuário não está logado e tenta acessar uma rota privada, redireciona para o login
+    let callbackUrl = nextUrl.pathname;
+    if (nextUrl.search) {
+      callbackUrl += nextUrl.search; // Preserva os parâmetros da URL
+    }
+
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    return NextResponse.redirect(
+      new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
+    );
+  }
+
+  // Verificação de permissões e papéis
+  if (isLoggedIn && token) {
+    // Exemplo: Verifica se o usuário tem permissão para acessar a rota "/admin"
+    const canAccessAdmin = hasPermission(token, "admin", "READ");
+
+    if (nextUrl.pathname.startsWith("/admin") && !canAccessAdmin) {
+      return NextResponse.redirect(new URL("/unauthorized", nextUrl));
+    }
+
+    // Exemplo: Verifica se o usuário tem o papel "admin"
+    const isAdmin = hasRole(token, "admin");
+
+    if (nextUrl.pathname === "/user" && isAdmin) {
+      return NextResponse.redirect(new URL("/admin", nextUrl));
+    }
+  }
+
+  return; // Permite acesso a rotas públicas ou usuários logados com permissões válidas
+}
+
+export const config = {
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+};

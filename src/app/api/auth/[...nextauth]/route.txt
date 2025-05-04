@@ -1,0 +1,117 @@
+// src/app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { getUserByEmail } from "@/services/data/user";
+import { compare } from "bcryptjs";
+import { UserRole } from "@prisma/client";
+// import type NextAuthOptions from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import type { Session } from "next-auth";
+
+// Definindo interfaces para os tipos personalizados
+interface ExtendedUser {
+  id: string;
+  email: string;
+  name?: string;
+  role: UserRole;
+  isTwoFactorEnabled: boolean;
+}
+
+interface ExtendedJWT extends JWT {
+  id: string;
+  role: UserRole;
+  isTwoFactorEnabled: boolean;
+}
+
+interface ExtendedSession extends Session {
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    role: UserRole;
+    isTwoFactorEnabled: boolean;
+  }
+}
+
+// Definindo as opções de autenticação
+const options: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        code: { label: "2FA Code", type: "text" }
+      },
+      async authorize(credentials) {
+        if (!credentials || !credentials.email || !credentials.password) {
+          return null;
+        }
+
+        const user = await getUserByEmail(credentials.email as string);
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        const isValid = await compare(
+          credentials.password as string,
+          user.password
+        );
+
+        if (!isValid) {
+          return null;
+        }
+
+        if (user.isTwoFactorEnabled && !credentials.code) {
+          throw new Error("2FA_REQUIRED");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          isTwoFactorEnabled: user.isTwoFactorEnabled
+        } as ExtendedUser;
+      }
+    })
+  ],
+  pages: {
+    signIn: "/login",
+    error: "/auth/error"
+  },
+  callbacks: {
+    async jwt({ token, user }: { token: JWT; user?: ExtendedUser }) {
+      if (user) {
+        return {
+          ...token,
+          id: user.id,
+          role: user.role,
+          isTwoFactorEnabled: user.isTwoFactorEnabled
+        };
+      }
+      return token;
+    },
+    async session({ session, token }: { session: Session; token: ExtendedJWT }) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id,
+          role: token.role,
+          isTwoFactorEnabled: token.isTwoFactorEnabled
+        }
+      } as ExtendedSession;
+    }
+  }
+};
+
+// Criando e exportando o manipulador diretamente
+const handler = NextAuth(options);
+
+export { handler as GET, handler as POST };
+
+// Exportando as opções em um arquivo separado que pode ser importado em outros lugares
+// Isso não interfere com a definição do route handler
+export const authOptions = options;

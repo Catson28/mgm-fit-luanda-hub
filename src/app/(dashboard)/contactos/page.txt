@@ -1,0 +1,7 @@
+// app/page.tsx
+import Contactos from '@/components/pages/Contactos';
+
+export default function Page() {
+  return <Contactos />;
+}
+//

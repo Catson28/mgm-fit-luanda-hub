@@ -1,0 +1,339 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
+enum PermissionType {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  MANAGE
+}
+
+// Models
+model User {
+  id                    String                 @id @default(cuid())
+  name                  String?
+  email                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  accounts              Account[]
+  isTwoFactorEnabled    Boolean                @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
+  logs                  Log[]
+
+  enterprises Enterprise[]
+  // Relação com roles
+  roles       UserRole[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Plane {
+  id                String              @id @default(cuid())
+  name              String              @unique
+  description       String?
+  PlaneUserCount    PlaneUserCount[]
+  PlaneProsConsList PlaneProsConsList[]
+  planeEnterprise   PlaneEnterprise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Empresas
+model Enterprise {
+  id              String            @id @default(cuid())
+  name            String            @unique
+  description     String?
+  planeEnterprise PlaneEnterprise[]
+  userId          String?
+  User            User?             @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Vantagens ou desvantagens de cada plano
+model PlaneProsConsList {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  planeId     String
+
+  plane     Plane    @relation(fields: [planeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneRole {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  // Relações
+  planePermissions  PlaneRolePermission[]
+  PlanePosition     PlanePosition?        @relation(fields: [planePositionId], references: [id])
+  planePositionId   String?
+  PlaneUserCount    PlaneUserCount?       @relation(fields: [planeUserCountId], references: [id])
+  planeUserCountId  String?
+  PlaneRolePosition PlaneRolePosition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Regras de cada planos
+model PlaneEnterprise {
+  id           String  @id @default(cuid())
+  name         String  @unique
+  description  String?
+  planeId      String?
+  enterpriseId String?
+
+  Plane      Plane?      @relation(fields: [planeId], references: [id])
+  Enterprise Enterprise? @relation(fields: [enterpriseId], references: [id])
+
+  // Relações
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneRolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  // Relações
+  role       PlaneRole  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, permissionId])
+}
+
+// Papeis de usuarios de planos
+model PlanePosition {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  // Relações
+
+  planeRoles        PlaneRole[]
+  permissions       RolePermission[]
+  PlaneRolePosition PlaneRolePosition[]
+  PlaneUserCount    PlaneUserCount[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Cargos e permissoes de planos
+model PlaneRolePosition {
+  id              String  @id @default(cuid())
+  name            String  @unique
+  description     String?
+  planePositionId String
+  planeRoleId     String
+
+  // Relações
+  planePosition PlanePosition @relation(fields: [planePositionId], references: [id], onDelete: Cascade)
+  planeRole     PlaneRole     @relation(fields: [planeRoleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneUserCount {
+  id              String  @id @default(cuid())
+  number          Int?
+  description     String?
+  planePositionId String
+  planeId         String
+
+  // Relações
+  planePosition PlanePosition @relation(fields: [planePositionId], references: [id], onDelete: Cascade)
+  plane         Plane         @relation(fields: [planeId], references: [id], onDelete: Cascade)
+
+  // Relação
+  planeRoles  PlaneRole[]
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  // Relações
+  users       UserRole[]
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Permission {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  type        PermissionType
+  resource    String // Ex: "users", "posts", etc.
+
+  // Relação
+  roles RolePermission[]
+
+  // Relação
+  planeRoles PlaneRolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabelas de relacionamento (junction tables)
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  // Relações
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  // Relações
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  PlanePosition    PlanePosition?  @relation(fields: [planePositionId], references: [id])
+  planePositionId  String?
+  PlaneUserCount   PlaneUserCount? @relation(fields: [planeUserCountId], references: [id])
+  planeUserCountId String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([roleId, permissionId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+model Log {
+  id           String   @id @default(uuid())
+  type         LogType
+  level        LogLevel
+  message      String
+  details      String?  @db.Text
+  source       String?
+  ip           String?
+  userId       String?
+  resourceId   String?
+  resourceType String?
+  timestamp    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id])
+  metadata     Json?
+  tags         String[]
+  resolved     Boolean  @default(false)
+
+  @@index([type])
+  @@index([level])
+  @@index([timestamp])
+  @@index([userId])
+}
+
+enum LogType {
+  SYSTEM
+  APPLICATION
+  WEB_SERVER
+  SECURITY
+  DATABASE
+  NETWORK
+  AUDIT
+  PERFORMANCE
+  TRANSACTION
+  DEBUG
+}
+
+enum LogLevel {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+  DEBUG
+}

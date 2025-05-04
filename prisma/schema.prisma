@@ -1,0 +1,1340 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ======== ENUMS ========
+
+enum PermissionType {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  MANAGE
+}
+
+// Enums de Transações Financeiras
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+// Enums de Estoque
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+  PURCHASE
+  SALE
+  RETURN
+  TRANSFER
+  WRITE_OFF
+}
+
+// Enums de PDV
+enum CashierStatus {
+  OPEN
+  CLOSED
+}
+
+enum MovementType {
+  INFLOW
+  OUTFLOW
+}
+
+enum SaleStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  BANK_TRANSFER
+  MOBILE_MONEY
+  OTHER
+}
+
+enum PaymentStatus {
+  // PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PENDING // Pendente
+  PAID // Pago
+  CANCELED // Cancelado
+}
+
+// Enums de RH
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+enum PayrollItemType {
+  EARNING
+  DEDUCTION
+  TAX
+  BENEFIT
+}
+
+enum LeaveType {
+  VACATION
+  SICK_LEAVE
+  PERSONAL_LEAVE
+  MATERNITY_LEAVE
+  PATERNITY_LEAVE
+  BEREAVEMENT
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum JobPostingStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  FILLED
+  CANCELLED
+}
+
+enum JobApplicationStatus {
+  SUBMITTED
+  REVIEWING
+  INTERVIEW
+  REJECTED
+  ACCEPTED
+  WITHDRAWN
+}
+
+enum SalaryStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum PayslipStatus {
+  DRAFT
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+// Enums de Log
+enum LogType {
+  SYSTEM
+  APPLICATION
+  WEB_SERVER
+  SECURITY
+  DATABASE
+  NETWORK
+  AUDIT
+  PERFORMANCE
+  TRANSACTION
+  DEBUG
+}
+
+enum LogLevel {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+  DEBUG
+}
+
+enum AlertType {
+  LOW_STOCK
+  EXPIRED
+  PRICE_CHANGE
+}
+
+// Enums for invoice types and payment status
+// Enums para tipos de fatura e status de pagamento
+enum InvoiceType {
+  SALE // Venda
+  PURCHASE // Compra
+}
+
+// Enums for production status
+// Enums para status de produção
+enum ProductionStatus {
+  PENDING // Pendente
+  IN_PROGRESS // Em andamento
+  COMPLETED // Concluído
+  CANCELED // Cancelado
+}
+
+// ======== MODELOS ========
+
+model Person {
+  id        String  @id @default(cuid())
+  name      String?
+  firstName String?
+  lastName  String?
+  email     String? @unique
+  address   String?
+
+  birthDate DateTime?
+
+  images    Image[]
+  suppliers Supplier[]
+  users     User[]
+  phones    Phone[]
+  customers Customer[]
+  employees Employee[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// --- Usuários e Autenticação ---
+model User {
+  id                    String                 @id @default(cuid())
+  name                  String
+  email                 String                 @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  isTwoFactorEnabled    Boolean                @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
+  defaultCurrency       String?                @default("BRL")
+  personId              String?
+  person                Person?                @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  // Relações de autenticação
+  accounts Account[]
+  logs     Log[]
+  roles    UserRole[]
+
+  // Relações financeiras
+  companies      Company[]
+  transactions   Transaction[]
+  categories     Category[]
+  financialGoals FinancialGoal[]
+
+  // Relações com empresas e funções
+  enterprises Enterprise[]
+
+  // Relações PDV
+  cashiers Cashier[]
+
+  // Relações estoque
+  stockMovements StockMovement[]
+
+  // Relações RH  
+  jobApplications     JobApplication[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  TransactionCategory TransactionCategory[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- Finanças Pessoais ---
+model Transaction {
+  id          String          @id @default(cuid())
+  amount      Decimal         @db.Decimal(10, 2)
+  description String
+  date        DateTime
+  type        TransactionType
+  categoryId  String?
+  userId      String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  category TransactionCategory? @relation(fields: [categoryId], references: [id])
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+model TransactionCategory {
+  id        String          @id @default(cuid())
+  type      TransactionType
+  color     String?
+  icon      String?
+  userId    String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  Category     Category?     @relation(fields: [categoryId], references: [id])
+  categoryId   String?
+
+  @@unique([userId, type])
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String
+
+  transactionCategories TransactionCategory[]
+  productCategories     ProductCategory[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  User                  User?                 @relation(fields: [userId], references: [id])
+  userId                String?
+
+  @@map("categories")
+}
+
+model SubCategory {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  product   Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("subcategories")
+}
+
+model FinancialGoal {
+  id            String    @id @default(cuid())
+  title         String
+  targetAmount  Decimal   @db.Decimal(10, 2)
+  currentAmount Decimal   @default(0) @db.Decimal(10, 2)
+  startDate     DateTime
+  targetDate    DateTime?
+  completed     Boolean   @default(false)
+  userId        String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("financial_goals")
+}
+
+// --- Gestão de Planos e Permissões ---
+model Enterprise {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  userId      String?
+
+  user            User?             @relation(fields: [userId], references: [id])
+  planeEnterprise PlaneEnterprise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Plane {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  planeUserCount    PlaneUserCount[]
+  planeProsConsList PlaneProsConsList[]
+  planeEnterprise   PlaneEnterprise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneProsConsList {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  planeId     String
+
+  plane Plane @relation(fields: [planeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneEnterprise {
+  id           String  @id @default(cuid())
+  name         String  @unique
+  description  String?
+  planeId      String?
+  enterpriseId String?
+
+  plane      Plane?      @relation(fields: [planeId], references: [id])
+  enterprise Enterprise? @relation(fields: [enterpriseId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlanePosition {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  permissions       RolePermission[]
+  planeRolePosition PlaneRolePosition[]
+  planeUserCount    PlaneUserCount[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneRole {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  planePermissions  PlaneRolePermission[]
+  planeRolePosition PlaneRolePosition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneRolePosition {
+  id              String  @id @default(cuid())
+  name            String  @unique
+  description     String?
+  planePositionId String
+  planeRoleId     String
+
+  planePosition PlanePosition @relation(fields: [planePositionId], references: [id], onDelete: Cascade)
+  planeRole     PlaneRole     @relation(fields: [planeRoleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlaneUserCount {
+  id              String  @id @default(cuid())
+  number          Int?
+  description     String?
+  planePositionId String
+  planeId         String
+
+  planePosition PlanePosition @relation(fields: [planePositionId], references: [id], onDelete: Cascade)
+  plane         Plane         @relation(fields: [planeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Permission {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  type        PermissionType
+  resource    String
+
+  roles      RolePermission[]
+  planeRoles PlaneRolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id              String  @id @default(cuid())
+  roleId          String
+  permissionId    String
+  planePositionId String?
+
+  role          Role           @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission    Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  planePosition PlanePosition? @relation(fields: [planePositionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model PlaneRolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       PlaneRole  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, permissionId])
+  @@map("plane_role_permissions")
+}
+
+// --- PDV (Ponto de Venda) ---
+model Cashier {
+  id            String        @id @default(cuid())
+  userId        String
+  openingAmount Decimal       @db.Decimal(10, 2)
+  closingAmount Decimal?      @db.Decimal(10, 2)
+  openedAt      DateTime      @default(now())
+  closedAt      DateTime?
+  status        CashierStatus @default(OPEN)
+
+  user          User           @relation(fields: [userId], references: [id])
+  sales         Sale[]
+  cashMovements CashMovement[]
+
+  @@map("cashiers")
+}
+
+model CashMovement {
+  id          String       @id @default(cuid())
+  cashierId   String
+  amount      Decimal      @db.Decimal(10, 2)
+  type        MovementType
+  description String?
+  createdAt   DateTime     @default(now())
+
+  cashier Cashier @relation(fields: [cashierId], references: [id])
+
+  @@map("cash_movements")
+}
+
+model Sale {
+  id         String     @id @default(cuid())
+  number     Int        @default(autoincrement())
+  cashierId  String
+  customerId String?
+  subtotal   Decimal    @db.Decimal(10, 2)
+  discount   Decimal    @default(0) @db.Decimal(10, 2)
+  total      Decimal    @db.Decimal(10, 2)
+  status     SaleStatus @default(IN_PROGRESS)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  cashier  Cashier    @relation(fields: [cashierId], references: [id])
+  customer Customer?  @relation(fields: [customerId], references: [id])
+  items    SaleItem[]
+  payments Payment[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  discount  Decimal @default(0) @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(10, 2)
+
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sale_items")
+}
+
+model Pessoa {
+  id       String   @id @default(uuid())
+  nome     String
+  email    String   @unique
+  criadoEm DateTime @default(now())
+  imagem   Imagem?
+}
+
+model Imagem {
+  id       String   @id @default(uuid())
+  url      String
+  publicId String?
+  criadoEm DateTime @default(now())
+  pessoaId String   @unique
+  pessoa   Pessoa   @relation(fields: [pessoaId], references: [id], onDelete: Cascade)
+}
+
+model Phone {
+  id       String  @id @default(cuid())
+  phone    String
+  personId String?
+
+  person    Person?  @relation(fields: [personId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Customers - tracks clients who purchase products
+// Clientes - registra clientes que compram produtos
+model Customer {
+  id        String    @id @default(cuid())
+  document  String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  personId  String?
+  taxId     String? // CNPJ ou CPF
+  invoices  Invoice[]
+
+  person Person? @relation(fields: [personId], references: [id])
+  sales  Sale[]
+
+  @@map("customers")
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  saleId     String
+  method     PaymentMethod
+  amount     Decimal       @db.Decimal(10, 2)
+  status     PaymentStatus @default(PENDING)
+  externalId String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// --- Produtos e Estoque ---
+model ProductCategory {
+  id          String    @id @default(cuid())
+  description String?
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("product_categories")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  sku           String?  @unique
+  barcode       String?  @unique
+  currentStock  Int      @default(0)
+  minimumStock  Int      @default(5)
+  size          String?
+  price         Decimal  @db.Decimal(10, 2)
+  costPrice     Decimal? @db.Decimal(10, 2)
+  active        Boolean  @default(true)
+  categoryId    String?
+  supplierId    String?
+  subCategoryId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category            ProductCategory?     @relation(fields: [categoryId], references: [id])
+  subCategory         SubCategory?         @relation(fields: [subCategoryId], references: [id])
+  supplier            Supplier?            @relation(fields: [supplierId], references: [id])
+  stockMovements      StockMovement[]
+  saleItems           SaleItem[]
+  invoiceItems        InvoiceItem[]
+  productionOrders    ProductionOrder[]
+  productionMaterials ProductionMaterial[]
+  warehouseStocks     WarehouseStock[]
+  productExpiries     ProductExpiry[]
+  // Relacionamento com Image
+  images              Image[]              @relation("ProductImages")
+  Alert               Alert[]
+
+  @@index([name])
+  @@index([sku])
+  @@map("products")
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String?
+  personId  String?
+  person    Person?  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation("ProductImages", fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  contactName String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  personId    String?
+
+  person   Person?   @relation(fields: [personId], references: [id])
+  products Product[]
+  Invoice  Invoice[]
+
+  @@map("suppliers")
+}
+
+model StockMovement {
+  id          String            @id @default(cuid())
+  productId   String
+  quantity    Int
+  type        StockMovementType
+  reference   String?
+  description String?
+  userId      String
+  createdAt   DateTime          @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+model Alert {
+  id        String    @id @default(cuid())
+  title     String
+  message   String
+  type      AlertType
+  isRead    Boolean   @default(false)
+  productId String
+  product   Product?  @relation(fields: [productId], references: [id])
+  createdAt DateTime  @default(now())
+
+  @@index([isRead])
+  @@index([type])
+  @@map("alerts")
+}
+
+// --- RH (Recursos Humanos) ---
+
+// Tabela de Empresas
+model Company {
+  id      String  @id @default(cuid())
+  cnpj    String  @unique
+  name    String?
+  address String?
+  phone   String?
+  website String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  departments Department[]
+  employees   Employee[]
+  jobPostings JobPosting[]
+  // @@comment("Armazena as informações das empresas")
+
+  @@map("companies")
+}
+
+// Tabela de Departamentos (Setores da empresa)
+model Department {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  employees Employee[]
+  // @@comment("Armazena os setores/departamentos da empresa")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("departments")
+}
+
+// Tabela de Cargos
+model Position {
+  id          String  @id @default(cuid())
+  title       String  @unique
+  description String?
+
+  employees Employee[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  // @@comment("Armazena os cargos disponíveis na empresa")
+
+  @@map("positions")
+}
+
+// Tabela de Funcionários
+model Employee {
+  id              String         @id @default(cuid())
+  hireDate        DateTime       @default(now())
+  terminationDate DateTime?
+  positionId      String
+  departmentId    String
+  baseSalary      Decimal        @db.Decimal(10, 2)
+  status          EmployeeStatus @default(ACTIVE)
+  personId        String?
+
+  person Person? @relation(fields: [personId], references: [id])
+
+  companyId String?
+
+  company Company? @relation(fields: [companyId], references: [id])
+
+  position        Position          @relation(fields: [positionId], references: [id])
+  department      Department        @relation(fields: [departmentId], references: [id])
+  payrolls        Payroll[]
+  salaries        Salary[]
+  payslips        Payslip[]
+  attendances     Attendance[]
+  leaves          Leave[]
+  performances    Performance[]
+  benefits        EmployeeBenefit[]
+  jobApplications JobApplication[]
+  // @@comment("Armazena os dados dos funcionários da empresa")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@map("employees")
+}
+
+// Tabela de Salários (histórico de alterações)
+model Salary {
+  id         String   @id @default(uuid())
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId String
+
+  // Valores anuais e mensais brutos
+  annualSalary  Decimal @db.Decimal(10, 2)
+  monthlySalary Decimal @db.Decimal(10, 2)
+
+  // Data efetiva de alteração salarial
+  effectiveDate DateTime @default(now())
+
+  // Status e aprobação
+  status     SalaryStatus @default(ACTIVE)
+  approvedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // @@comment("Registra o histórico de alterações salariais dos funcionários")
+
+  @@map("salaries")
+}
+
+model Payroll {
+  id              String   @id @default(cuid())
+  employeeId      String
+  payPeriodStart  DateTime
+  payPeriodEnd    DateTime
+  paymentDate     DateTime
+  grossSalary     Decimal  @db.Decimal(10, 2)
+  netSalary       Decimal  @db.Decimal(10, 2)
+  taxes           Decimal  @db.Decimal(10, 2)
+  otherDeductions Decimal  @db.Decimal(10, 2)
+  bonuses         Decimal  @db.Decimal(10, 2)
+  notes           String?
+
+  employee     Employee      @relation(fields: [employeeId], references: [id])
+  payrollItems PayrollItem[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  // @@comment("Registra as folhas de pagamento dos funcionários")
+
+  @@map("payrolls")
+}
+
+model PayrollItem {
+  id          String          @id @default(cuid())
+  payrollId   String
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  type        PayrollItemType
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  payroll Payroll @relation(fields: [payrollId], references: [id])
+  // @@comment("Registra os itens individuais da folha de pagamento (descontos, bonificações, etc)")
+
+  @@map("payroll_items")
+}
+
+// Recibo de Pagamento Individual (Adaptado para Angola)
+model Payslip {
+  id            String   @id @default(uuid())
+  payslipNumber String   @unique // Código único para cada folha (e.g. FP-2025-03-0001)
+  employee      Employee @relation(fields: [employeeId], references: [id])
+  employeeId    String
+  payPeriod     DateTime // Mês de referência
+
+  // Valores brutos
+  baseSalary Decimal @db.Decimal(10, 2)
+
+  // Subsídios específicos de Angola
+  transportAllowance Decimal @default(0) @db.Decimal(10, 2)
+  foodAllowance      Decimal @default(0) @db.Decimal(10, 2)
+
+  // Horas extras e bonificações
+  overtimeAmount    Decimal @default(0) @db.Decimal(10, 2)
+  productivityBonus Decimal @default(0) @db.Decimal(10, 2)
+  holidaySubsidy    Decimal @default(0) @db.Decimal(10, 2) // Subsídio de férias
+  christmasSubsidy  Decimal @default(0) @db.Decimal(10, 2) // Subsídio de Natal (13º mês)
+  otherEarnings     Decimal @default(0) @db.Decimal(10, 2)
+
+  // Deduções
+  irt             Decimal @default(0) @db.Decimal(10, 2) // Imposto sobre os Rendimentos do Trabalho
+  socialSecurity  Decimal @default(0) @db.Decimal(10, 2) // 3% para o trabalhador
+  healthInsurance Decimal @default(0) @db.Decimal(10, 2)
+  advances        Decimal @default(0) @db.Decimal(10, 2) // Adiantamentos
+  otherDeductions Decimal @default(0) @db.Decimal(10, 2)
+
+  // Valores finais
+  totalEarnings   Decimal @db.Decimal(10, 2)
+  totalDeductions Decimal @db.Decimal(10, 2)
+  netSalary       Decimal @db.Decimal(10, 2)
+
+  // Processamento
+  status        PayslipStatus  @default(DRAFT)
+  generatedBy   String
+  generatedAt   DateTime       @default(now())
+  paymentDate   DateTime?
+  paymentMethod PaymentMethod?
+
+  // Itens flexíveis
+  payslipEarnings   PayslipEarning[]
+  payslipDeductions PayslipDeduction[]
+
+  // Histórico
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // @@comment("Armazena os contracheques individuais com adaptações para Angola")
+
+  @@map("payslips")
+}
+
+model Attendance {
+  id         String    @id @default(cuid())
+  employeeId String
+  checkIn    DateTime
+  checkOut   DateTime?
+  isOvertime Boolean   @default(false)
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  // @@comment("Registra a entrada e saída dos funcionários (controle de ponto)")
+
+  @@map("attendances")
+}
+
+model Leave {
+  id           String      @id @default(cuid())
+  employeeId   String
+  leaveType    LeaveType
+  startDate    DateTime
+  endDate      DateTime
+  status       LeaveStatus @default(PENDING)
+  approvedById String?
+  approvedAt   DateTime?
+  reason       String?
+  notes        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  // @@comment("Registra férias, licenças e afastamentos dos funcionários")
+
+  @@map("leaves")
+}
+
+// Tabela de Avaliação de Desempenho
+model Performance {
+  id                String   @id @default(cuid())
+  employeeId        String
+  evaluatorId       String?
+  evaluationDate    DateTime
+  reviewPeriodStart DateTime
+  reviewPeriodEnd   DateTime
+  overallRating     Decimal  @db.Decimal(3, 2)
+  strengths         String?
+  areasToImprove    String?
+  goals             String?
+  feedback          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  employee         Employee          @relation(fields: [employeeId], references: [id])
+  performanceItems PerformanceItem[]
+  // @@comment("Armazena avaliações de desempenho dos funcionários")
+
+  @@map("performances")
+}
+
+model PerformanceItem {
+  id            String   @id @default(cuid())
+  performanceId String
+  category      String
+  rating        Decimal  @db.Decimal(3, 2)
+  comments      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  performance Performance @relation(fields: [performanceId], references: [id])
+  // @@comment("Armazena itens individuais de avaliação de desempenho (por categoria)")
+
+  @@map("performance_items")
+}
+
+model Benefit {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String?
+  costToCompany Decimal? @db.Decimal(10, 2)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  employeeBenefits EmployeeBenefit[]
+  // @@comment("Armazena os tipos de benefícios oferecidos pela empresa")
+
+  @@map("benefits")
+}
+
+model EmployeeBenefit {
+  id         String    @id @default(cuid())
+  employeeId String
+  benefitId  String
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  amount     Decimal?  @db.Decimal(10, 2)
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  benefit  Benefit  @relation(fields: [benefitId], references: [id])
+  // @@comment("Relaciona funcionários com seus benefícios ativos")
+
+  @@map("employee_benefits")
+}
+
+model JobPosting {
+  id           String           @id @default(cuid())
+  title        String
+  description  String
+  positionId   String?
+  departmentId String?
+  vacancies    Int              @default(1)
+  requirements String?
+  status       JobPostingStatus @default(OPEN)
+  publishDate  DateTime         @default(now())
+  closeDate    DateTime?
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications JobApplication[]
+  // @@comment("Armazena vagas de emprego disponíveis na empresa")
+
+  @@map("job_postings")
+}
+
+model JobApplication {
+  id              String               @id @default(cuid())
+  jobPostingId    String
+  employeeId      String?
+  userId          String?
+  applicantName   String?
+  applicantEmail  String
+  applicantPhone  String?
+  applicationDate DateTime             @default(now())
+  status          JobApplicationStatus @default(SUBMITTED)
+  resume          String?
+  notes           String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  jobPosting JobPosting @relation(fields: [jobPostingId], references: [id])
+  employee   Employee?  @relation(fields: [employeeId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id])
+  // @@comment("Armazena candidaturas para as vagas disponíveis (internas e externas)")
+
+  @@map("job_applications")
+}
+
+// Componentes flexíveis para contracheque
+model EarningType {
+  id              String           @id @default(uuid())
+  name            String
+  description     String?
+  isActive        Boolean          @default(true)
+  isDefault       Boolean          @default(false)
+  payslipEarnings PayslipEarning[]
+  // @@comment("Tipos de ganhos/rendimentos que podem ser adicionados ao contracheque")
+
+  @@map("earning_types")
+}
+
+model DeductionType {
+  id                String             @id @default(uuid())
+  name              String
+  description       String?
+  isActive          Boolean            @default(true)
+  isDefault         Boolean            @default(false)
+  payslipDeductions PayslipDeduction[]
+}
+
+model PayslipEarning {
+  id            String      @id @default(uuid())
+  payslipId     String
+  earningTypeId String
+  earningType   EarningType @relation(fields: [earningTypeId], references: [id])
+  amount        Float
+  description   String?
+  Payslip       Payslip     @relation(fields: [payslipId], references: [id])
+}
+
+model PayslipDeduction {
+  id              String        @id @default(uuid())
+  payslipId       String
+  deductionTypeId String
+  deductionType   DeductionType @relation(fields: [deductionTypeId], references: [id])
+  amount          Float
+  description     String?
+  Payslip         Payslip       @relation(fields: [payslipId], references: [id])
+}
+
+// IRT (Imposto sobre Rendimentos do Trabalho)
+model IRTBracket {
+  id            String    @id @default(uuid())
+  minSalary     Float
+  maxSalary     Float? // Null para o último bracket
+  rate          Float // Percentagem de imposto
+  fixedAmount   Float? // Valor fixo a deduzir
+  effectiveDate DateTime  @default(now())
+  endDate       DateTime?
+  isActive      Boolean   @default(true)
+}
+
+// --- Logs e Sistema ---
+model Log {
+  id           String   @id @default(uuid())
+  type         LogType
+  level        LogLevel
+  message      String
+  details      String?  @db.Text
+  source       String?
+  ip           String?
+  userId       String?
+  resourceId   String?
+  resourceType String?
+  timestamp    DateTime @default(now())
+  metadata     Json?
+  tags         String[]
+  resolved     Boolean  @default(false)
+
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([level])
+  @@index([timestamp])
+  @@index([userId])
+  @@map("logs")
+}
+
+// Invoices - tracks sales and purchases
+// Faturas - registra vendas e compras
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique // Número da nota fiscal
+  type          InvoiceType   @default(SALE) // Tipo de fatura (venda ou compra)
+  customer      Customer?     @relation(fields: [customerId], references: [id])
+  customerId    String?
+  supplier      Supplier?     @relation(fields: [supplierId], references: [id])
+  supplierId    String?
+  discount      Float
+  payment       Float
+  items         InvoiceItem[] // Itens da fatura
+  totalAmount   Decimal       @db.Decimal(10, 2) // Valor total da fatura
+  issueDate     DateTime      @default(now()) // Data de emissão
+  dueDate       DateTime? // Data de vencimento (para compras)
+  paymentStatus PaymentStatus @default(PENDING) // Status do pagamento
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("invoices")
+}
+
+// Invoice items - tracks products and quantities in an invoice
+// Itens da fatura - registra produtos e quantidades em uma fatura
+model InvoiceItem {
+  id         String   @id @default(cuid())
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id])
+  invoiceId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(10, 2) // Preço unitário
+  totalPrice Decimal  @db.Decimal(10, 2) // Preço total (quantity * unitPrice)
+  createdAt  DateTime @default(now())
+
+  @@map("invoice_items")
+}
+
+// Production orders - tracks manufacturing processes
+// Ordens de produção - registra processos de fabricação
+model ProductionOrder {
+  id        String               @id @default(cuid())
+  product   Product              @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int // Quantidade a ser produzida
+  status    ProductionStatus     @default(PENDING) // Status da ordem
+  startDate DateTime? // Data de início
+  endDate   DateTime? // Data de conclusão
+  materials ProductionMaterial[] // Matérias-primas utilizadas
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@map("production_orders")
+}
+
+// Production materials - tracks raw materials used in production
+// Matérias-primas de produção - registra insumos usados na produção
+model ProductionMaterial {
+  id                String          @id @default(cuid())
+  productionOrder   ProductionOrder @relation(fields: [productionOrderId], references: [id])
+  productionOrderId String
+  product           Product         @relation(fields: [productId], references: [id])
+  productId         String
+  quantity          Int // Quantidade utilizada
+  createdAt         DateTime        @default(now())
+
+  @@map("production_materials")
+}
+
+// Warehouses - tracks multiple storage locations
+// Armazéns - registra múltiplos locais de armazenamento
+model Warehouse {
+  id        String           @id @default(cuid())
+  name      String
+  address   String?
+  products  WarehouseStock[] // Estoque em cada armazém
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("warehouses")
+}
+
+// Warehouse stock - tracks product quantities in each warehouse
+// Estoque por armazém - registra quantidades de produtos em cada armazém
+model WarehouseStock {
+  id          String    @id @default(cuid())
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId String
+  product     Product   @relation(fields: [productId], references: [id])
+  productId   String
+  quantity    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("warehouse_stocks")
+}
+
+// Expiry control - tracks product expiration dates
+// Controle de validade - registra datas de validade dos produtos
+model ProductExpiry {
+  id         String   @id @default(cuid())
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  expiryDate DateTime // Data de validade
+  quantity   Int // Quantidade com essa validade
+  createdAt  DateTime @default(now())
+
+  @@map("product_expiries")
+}

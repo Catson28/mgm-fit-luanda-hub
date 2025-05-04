@@ -1,0 +1,53 @@
+// src/auth.config.ts
+import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import { LoginSchema } from "@/services/schemas";
+import { getUserByEmail } from "@/services/data/user";
+import bcrypt from "bcryptjs";
+
+export default {
+  providers: [
+    Credentials({
+      async authorize(credentials, request) {  // Adicionar o parâmetro request
+        const validatedFields = LoginSchema.safeParse(credentials);
+        console.log(request);
+
+        if (validatedFields.success) {
+          const { email, password } = validatedFields.data;
+
+          const user = await getUserByEmail(email);
+          if (!user || !user.password) return null;
+
+          const passwordsMatch = await bcrypt.compare(password, user.password);
+
+
+          if (passwordsMatch) {
+            // Ajustar para corresponder à interface User
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.roles[0]
+            };
+          }
+        }
+
+        return null;
+      }
+    })
+  ],
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow relative URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+
+      // Allow same-origin URLs
+      if (new URL(url).origin === baseUrl) return url;
+
+      return baseUrl;
+    }
+  },
+  pages: {
+    signIn: '/login',
+  }
+} satisfies NextAuthConfig;
