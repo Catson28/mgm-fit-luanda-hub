@@ -11,38 +11,52 @@ interface Plan {
 }
 
 interface Athlete {
+  id: string;
   name: string;
+  initials?: string;
   phone?: string;
-  planId?: string;
   membershipStart?: string;
-  status?: string;
+  status: string;
+  plan?: { name: string };
+  image?: { url: string };
+  planId?: string;
 }
 
 interface NovoAtletaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<Athlete>) => void;
+  onSubmit: (athleteData: Partial<Athlete>) => Promise<void>;
   plans: Plan[];
 }
 
-const NovoAtletaModal: React.FC<NovoAtletaModalProps> = ({ isOpen, onClose, onSubmit, plans }) => {
+export const NovoAtletaModal: React.FC<NovoAtletaModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  plans
+}) => {
   const [formData, setFormData] = useState<Partial<Athlete>>({
     name: '',
     phone: '',
     planId: '',
-    membershipStart: '',
+    membershipStart: new Date().toISOString().split('T')[0],
     status: 'ACTIVE',
   });
 
-  const handleSubmit = () => {
-    onSubmit(formData);
+  const handleSubmit = async () => {
+    try {
+      await onSubmit(formData);
+      onClose();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo Atleta</DialogTitle>
+          <DialogTitle>Novo Atletai</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <Input
@@ -64,7 +78,9 @@ const NovoAtletaModal: React.FC<NovoAtletaModalProps> = ({ isOpen, onClose, onSu
             </SelectTrigger>
             <SelectContent>
               {plans.map((plan) => (
-                <SelectItem key={plan.id || plan.name} value={plan.id || plan.name}>{plan.name}</SelectItem>
+                <SelectItem key={plan.id || plan.name} value={plan.id || plan.name}>
+                  {plan.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -75,8 +91,12 @@ const NovoAtletaModal: React.FC<NovoAtletaModalProps> = ({ isOpen, onClose, onSu
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSubmit}>Salvar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit}>
+            Salvar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

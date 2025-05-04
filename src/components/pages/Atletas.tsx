@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface Athlete {
   status: string;
   plan?: { name: string };
   image?: { url: string };
+  planId?: string;
 }
 
 interface ApiResponse {
@@ -67,6 +69,7 @@ const Atletas: React.FC = () => {
         setPlans(['Todos', ...plansData.map(p => p.name)]);
       } catch (error) {
         console.error('Error fetching data:', error);
+        toast.error('Failed to load athletes or plans');
       } finally {
         setLoading(false);
       }
@@ -92,6 +95,7 @@ const Atletas: React.FC = () => {
 
       if (!createRes.ok) throw new Error('Failed to create athlete');
 
+      toast.success('Atleta criado com sucesso!');
       setIsNovoAtletaModalOpen(false);
 
       const fetchRes = await fetch('/api/athletes', {
@@ -107,6 +111,7 @@ const Atletas: React.FC = () => {
       setAthletes(data.data);
     } catch (error) {
       console.error('Error creating athlete:', error);
+      toast.error('Falha ao criar atleta');
     }
   };
 
