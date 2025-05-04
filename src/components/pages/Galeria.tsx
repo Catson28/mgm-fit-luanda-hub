@@ -1,47 +1,67 @@
-
+"use client"
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Image } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
-const Galeria = () => {
-  const images = [
-    {
-      id: 1,
-      title: 'Competição 2025',
-      description: 'Imagens da competição de culturismo',
-      url: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81',
-      date: '15/03/2025'
-    },
-    {
-      id: 2,
-      title: 'Treino em equipa',
-      description: 'Sessão de treino funcional em grupo',
-      url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      date: '03/02/2025'
-    },
-    {
-      id: 3,
-      title: 'Workshop de nutrição',
-      description: 'Palestra sobre nutrição esportiva',
-      url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c',
-      date: '20/01/2025'
-    },
-    {
-      id: 4,
-      title: 'Inauguração área funcional',
-      description: 'Nova área de treino funcional',
-      url: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7',
-      date: '05/01/2025'
-    },
-    {
-      id: 5,
-      title: 'Desafio de fim de ano',
-      description: 'Atletas no desafio de dezembro',
-      url: 'https://images.unsplash.com/photo-1501854140801-50d01698950b',
-      date: '28/12/2024'
-    },
-  ];
+interface GalleryItem {
+  id: string;
+  title: string;
+  description?: string;
+  date?: string;
+  image: { url: string };
+}
+
+const Galeria: React.FC = () => {
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/gallery', {
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Failed to fetch gallery');
+        const data: GalleryItem[] = await response.json();
+        setGallery(data);
+      } catch (error) {
+        console.error('Error fetching gallery:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
+
+  const handleAddImage = async (imageData: Partial<GalleryItem>) => {
+    try {
+      const token = localStorage.getItem('token');
+      const createRes = await fetch('/api/gallery', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(imageData),
+      });
+
+      if (!createRes.ok) throw new Error('Failed to create gallery item');
+
+      const fetchRes = await fetch('/api/gallery', {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!fetchRes.ok) throw new Error('Failed to fetch gallery');
+
+      const data: GalleryItem[] = await fetchRes.json();
+      setGallery(data);
+    } catch (error) {
+      console.error('Error adding gallery item:', error);
+    }
+  };
 
   return (
     <Layout>
@@ -53,33 +73,42 @@ const Galeria = () => {
               Momentos especiais do MGM Fitness Luanda
             </p>
           </div>
-          <Button className="bg-mgm-blue hover:bg-mgm-blue-dark">
+          <Button className="bg-mgm-blue hover:bg-mgm-blue-dark" onClick={() => handleAddImage({
+            title: 'Nova Imagem',
+            description: 'Descrição da nova imagem',
+            date: new Date().toISOString(),
+            imageId: 'placeholder_image_id',
+          })}>
             <Image className="mr-2 h-4 w-4" />
             Adicionar Imagem
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {images.map((image) => (
-          <Card key={image.id} className="overflow-hidden group">
-            <div className="aspect-video relative overflow-hidden">
-              <img 
-                src={image.url} 
-                alt={image.title}
-                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{image.title}</CardTitle>
-              <CardDescription>{image.date}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{image.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center p-8">Carregando...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {gallery.map((image) => (
+            <Card key={image.id} className="overflow-hidden group">
+              <div className="aspect-video relative overflow-hidden">
+                <img
+                  src={image.image.url}
+                  alt={image.title}
+                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{image.title}</CardTitle>
+                <CardDescription>{image.date ? new Date(image.date).toLocaleDateString() : ''}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{image.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </Layout>
   );
 };

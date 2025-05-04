@@ -10,6 +10,27 @@ generator client {
 
 // ======== ENUMS ========
 
+// Existing enums (reused or new)
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AthleteStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum EventStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+// ======== ENUMS ========
+
 enum PermissionType {
   CREATE
   READ
@@ -200,6 +221,7 @@ model Person {
   employees Employee[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  Athlete   Athlete[]
 }
 
 // --- Usuários e Autenticação ---
@@ -730,16 +752,130 @@ model Product {
   @@map("products")
 }
 
-model Image {
+// New Model: Athlete
+model Athlete {
+  id              String        @id @default(cuid())
+  name            String
+  initials        String? // e.g., "RF" for Ricardo Fernandes
+  phone           String? // e.g., "+244 923 456 789"
+  membershipStart DateTime? // e.g., "12 Jan 2023"
+  status          AthleteStatus @default(ACTIVE)
+  planId          String? // Links to a specific plan
+  personId        String? // Optional link to Person for shared attributes
+  imageId         String? // Optional link to Image for athlete photo
+
+  person             Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
+  plan               Plan?               @relation(fields: [planId], references: [id], onDelete: SetNull)
+  image              Image?              @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  eventRegistrations EventRegistration[] // Athletes registered for events
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@map("athletes")
+}
+
+// New Model: Plan (refined for fitness plans)
+model Plan {
+  id          String        @id @default(cuid())
+  name        String // e.g., "Diário", "Mensal", "Anual"
+  price       Decimal       @db.Decimal(10, 2) // e.g., 1500 Kz
+  period      String // e.g., "Por dia", "Por mês"
+  description String? // e.g., "Acesso completo por um dia"
+  isPopular   Boolean       @default(false) // For highlighting popular plans
+  status      PlanStatus    @default(ACTIVE)
+  features    PlanFeature[] // List of features (e.g., "Acesso à musculação")
+  athletes    Athlete[] // Athletes subscribed to this plan
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("plans")
+}
+
+// New Model: PlanFeature (to store individual features of a plan)
+model PlanFeature {
   id        String   @id @default(cuid())
+  planId    String
+  name      String // e.g., "Acesso à sala de musculação"
+  included  Boolean  @default(true) // Whether the feature is included
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plan_features")
+}
+
+// New Model: Event
+model Event {
+  id            String              @id @default(cuid())
+  title         String // e.g., "Campeonato de Fisiculturismo"
+  description   String? // e.g., "Competição regional"
+  date          DateTime // e.g., "15 Jun 2025"
+  location      String? // e.g., "MGM Fitness Arena"
+  imageId       String? // Optional event image
+  status        EventStatus         @default(SCHEDULED)
+  registrations EventRegistration[] // Athletes registered for the event
+  image         Image?              @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("events")
+}
+
+// New Model: EventRegistration (to track athletes registered for events)
+model EventRegistration {
+  id           String   @id @default(cuid())
+  eventId      String
+  athleteId    String
+  registeredAt DateTime @default(now())
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  athlete      Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("event_registrations")
+}
+
+// New Model: Gallery
+model Gallery {
+  id          String    @id @default(cuid())
+  title       String // e.g., "Competição 2025"
+  description String? // e.g., "Imagens da competição de culturismo"
+  date        DateTime? // e.g., "15/03/2025"
+  imageId     String // Links to the image
+  image       Image     @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("gallery")
+}
+
+// New Model: CorporatePlan (for enterprise plans in Precos)
+model CorporatePlan {
+  id           String   @id @default(cuid())
+  name         String // e.g., "Plano Corporativo Básico"
+  description  String? // e.g., "De 5 a 15 funcionários"
+  discount     Float // e.g., 20 (for 20% discount)
+  minEmployees Int // e.g., 5
+  maxEmployees Int? // e.g., 15 (null for unlimited)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("corporate_plans")
+}
+
+model Image {
+  id        String    @id @default(cuid())
   url       String
   publicId  String?
   personId  String?
-  person    Person?  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  person    Person?   @relation(fields: [personId], references: [id], onDelete: Cascade)
   productId String?
-  product   Product? @relation("ProductImages", fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  product   Product?  @relation("ProductImages", fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Athlete   Athlete[]
+  Event     Event[]
+  Gallery   Gallery[]
 }
 
 model Supplier {
