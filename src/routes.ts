@@ -5,9 +5,7 @@
  * @type {string[]}
  */
 export const publicRoutes = [
-  "/contato",
-  "/sidebar-7",
-  "/api/contato"
+  "/",
 ];
 
 /**
