@@ -1,0 +1,49 @@
+# Environment variables declared in this file are automatically made available to Prisma.
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+# DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+DATABASE_URL="postgresql://postgres:root@localhost:5432/tyulaerp2025"
+
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# FACEBOOK_CLIENT_ID=
+# FACEBOOK_CLIENT_SECRET=
+
+
+# GOOGLE_CLIENT_ID="seu_client_id_do_google"
+# GOOGLE_CLIENT_SECRET="seu_client_secret_do_google"
+# GITHUB_CLIENT_ID="seu_client_id_do_github"
+# GITHUB_CLIENT_SECRET="seu_client_secret_do_github"
+
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=4i616NqJwaOJL/x3/HSjYWFEEOes9WidVKVgJgMBY9o= # Gere uma chave secreta usando: openssl rand -base64 32
+JWT_SECRET_KEY=trtI5HRlnbhzP0Uc5sxO2hewkuaAMHAyO59ENUfSUio=
+JWT_REFRESH_SECRET_KEY=XG5d2W9OMPvQyVno8ksWHLluEdc+LxuRiuTFdmvqOrk=
+RESEND_API_KEY=re_742bqLxF_AXU9ryUWRtwcyvLxYLzvYmhi
+AUTH_SECRET=ScWsvh/dYNzkDe1o6WLEEiBLj3OjaucM3GmyZ9sVMDk=
+JWT_SECRET=TlOCtDms1YuX0g8aos4mTElkbJDb1x+x+uYnc03zHgs=
+
+
+# producao
+# DATABASE_URL="postgres://postgres.ncumwsdxvmvwaasxbuux:ZPmYPEftHYbzijIS@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+
+# firabase
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDL80g3JWOm65AE5X1gYJSdZtQE7xDzwgY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tyulaerp.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=tyulaerp
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=tyulaerp.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=557771695103
+NEXT_PUBLIC_FIREBASE_APP_ID=1:557771695103:web:6fbb177680d1bf14ebfdca
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-PJ7QPPTZK0
+
+
+CLOUDINARY_CLOUD_NAME=dwctwdvtk
+CLOUDINARY_API_KEY=741531196939486
+CLOUDINARY_API_SECRET=y_VBhZ7lLvTlO2Sv-YDTTjSx8Ew
+CLOUDINARY_URL=cloudinary://741531196939486:y_VBhZ7lLvTlO2Sv-YDTTjSx8Ew@dwctwdvtk

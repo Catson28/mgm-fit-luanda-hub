@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tyula",
-  description: "ERP - SYSTEM",
+  title: "MGM",
+  description: "MGM - FITNESS",
 };
 
 export default function RootLayout({
