@@ -2,6 +2,7 @@
 import { WebsiteLayout } from '@/components/layout/WebsiteLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from 'lucide-react';
+import Image from 'next/image';
 
 const Funcionalidades = () => {
   const categorias = [
@@ -126,7 +127,7 @@ const Funcionalidades = () => {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="flex flex-col items-center p-4 rounded-lg border">
-                  <img 
+                  <Image fill  
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/1200px-Facebook_Logo_%282019%29.png" 
                     alt="Facebook" 
                     className="h-12 mb-4" 
@@ -134,7 +135,7 @@ const Funcionalidades = () => {
                   <p className="text-sm text-center">Compartilhamento automático de conquistas</p>
                 </div>
                 <div className="flex flex-col items-center p-4 rounded-lg border">
-                  <img 
+                  <Image fill  
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png" 
                     alt="Instagram" 
                     className="h-12 mb-4" 
@@ -142,7 +143,7 @@ const Funcionalidades = () => {
                   <p className="text-sm text-center">Publicação de eventos e resultados</p>
                 </div>
                 <div className="flex flex-col items-center p-4 rounded-lg border">
-                  <img 
+                  <Image fill  
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Fitbit_Logo_2021.svg/2560px-Fitbit_Logo_2021.svg.png" 
                     alt="Fitbit" 
                     className="h-12 mb-4" 
@@ -150,7 +151,7 @@ const Funcionalidades = () => {
                   <p className="text-sm text-center">Integração com dados de atividade</p>
                 </div>
                 <div className="flex flex-col items-center p-4 rounded-lg border">
-                  <img 
+                  <Image fill  
                     src="https://logodownload.org/wp-content/uploads/2016/10/WhatsApp-logo.png" 
                     alt="WhatsApp" 
                     className="h-12 mb-4" 

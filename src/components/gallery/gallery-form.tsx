@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, Upload, CalendarIcon  } from "lucide-react";
+import { Loader2, CalendarIcon  } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -24,6 +24,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import Image from 'next/image';
 
 // Esquema de validação com Zod
 const gallerySchema = z.object({
@@ -174,7 +175,7 @@ export function GalleryForm({ galleryItem, onSuccess }: GalleryFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="flex justify-center mb-4">
-          <img
+          <Image fill 
             src={imagePreview || "/placeholder.png"}
             alt="Preview"
             className="w-48 h-48 object-cover rounded-md"
@@ -238,7 +239,7 @@ export function GalleryForm({ galleryItem, onSuccess }: GalleryFormProps) {
           <FormField
             control={form.control}
             name="imageFile"
-            render={({ field: { onChange, value, ...field } }) => (
+            render={({ field: { onChange, ...field } }) => (
               <FormItem>
                 <FormLabel>Imagem*</FormLabel>
                 <FormControl>

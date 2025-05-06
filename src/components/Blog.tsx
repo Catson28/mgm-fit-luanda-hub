@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 const posts = [
   {
@@ -39,7 +40,7 @@ const Blog = () => {
               className="bg-white rounded-lg overflow-hidden shadow-md animate-fade-in card-hover"
             >
               <div className="h-48 overflow-hidden">
-                <img 
+                <Image fill  
                   src={post.image} 
                   alt={post.title} 
                   className="w-full h-full object-cover"

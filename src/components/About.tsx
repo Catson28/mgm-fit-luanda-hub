@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Image from 'next/image';
 
 const values = [
   { name: "Excelência", description: "Compromisso com os mais altos padrões em todas as áreas." },
@@ -58,7 +59,7 @@ const About = () => {
             </p>
           </div>
           <div className="h-64 md:h-auto bg-gray-300 rounded-lg overflow-hidden animate-fade-in">
-            <img 
+            <Image fill 
               src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
               alt="Interior da MGM Fitness" 
               className="w-full h-full object-cover"
@@ -90,7 +91,7 @@ const About = () => {
                 className={`p-6 rounded-lg shadow-md ${index % 2 === 0 ? 'border-mgmred' : 'border-mgmblue'} border-b-4 card-hover`}
               >
                 <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
-                  <img 
+                  <Image fill 
                     src={member.image} 
                     alt={member.name} 
                     className="w-full h-full object-cover"

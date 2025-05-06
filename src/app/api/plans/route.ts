@@ -98,6 +98,7 @@ export async function PUT(request: NextRequest) {
     const validated = planSchema.parse(body);
 
     // Atualizar plano
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const plan = await db.plan.update({
       where: { id },
       data: {

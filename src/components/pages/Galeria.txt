@@ -4,6 +4,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Image } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import Image from 'next/image';
 
 interface GalleryItem {
   id: string;
@@ -92,7 +93,7 @@ const Galeria: React.FC = () => {
           {gallery.map((image) => (
             <Card key={image.id} className="overflow-hidden group">
               <div className="aspect-video relative overflow-hidden">
-                <img
+                <Image fill 
                   src={image.image.url}
                   alt={image.title}
                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"

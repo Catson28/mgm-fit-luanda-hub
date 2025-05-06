@@ -8,7 +8,7 @@ import path from "path";
 interface CloudinaryUploadResult {
   secure_url: string;
   public_id: string;
-  [key: string]: any; // Para outras propriedades que podem existir no resultado
+  [key: string]: unknown; // Para outras propriedades que podem existir no resultado
 }
 
 // Configuração do Cloudinary (já feita em lib/cloudinary.ts, mas mantida aqui para referência)

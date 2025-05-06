@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { jwtVerify, createRemoteJWKSet } from "jose";
 
 export interface UserPayload {
   id: string;
@@ -53,8 +52,11 @@ export function checkUserRole(user: UserPayload | null, requiredRole: string | s
 }
 
 // Higher-order function for role-based access control in API routes
-export function withServerRoleCheck(handler: Function, allowedRoles: string[]) {
-  return async (req: Request, context: any) => {
+export function withServerRoleCheck(
+  handler: (req: Request, context: unknown, user: UserPayload) => Promise<Response>, 
+  allowedRoles: string[]
+) {
+  return async (req: Request, context: unknown) => {
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 

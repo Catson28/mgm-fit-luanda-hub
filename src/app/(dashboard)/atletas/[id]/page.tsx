@@ -13,7 +13,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  User,
   Star,
   Award,
   Clock,
@@ -31,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from 'next/image';
 
 // Tipagem baseada no retorno da API
 interface Athlete {
@@ -481,7 +481,7 @@ export default function AthletePage() {
                         <div className="sm:w-1/4">
                           <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
                             {registration.event.image ? (
-                              <img
+                              <Image fill 
                                 src={registration.event.image.url}
                                 alt={registration.event.title}
                                 className="object-cover w-full h-full"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Layout } from "@/components/layout/Layout";
 import { PlusCircle, Search, ArrowUpDown, LayoutList, LayoutGrid, Check } from "lucide-react";
@@ -56,12 +56,7 @@ export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
-  // Buscar planos no carregamento da página
-  useEffect(() => {
-    fetchPlans();
-  }, [sortBy, sortOrder, searchQuery]);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -86,7 +81,12 @@ export default function PlansPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sortBy, sortOrder, searchQuery]);
+
+  // Buscar planos no carregamento da página
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   const handleEdit = (plan: Plan) => {
     setSelectedPlan(plan);

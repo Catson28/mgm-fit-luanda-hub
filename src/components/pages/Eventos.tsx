@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Layout } from "@/components/layout/Layout";
 import { PlusCircle, Search, ArrowUpDown, LayoutList, LayoutGrid } from "lucide-react";
@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EventForm } from "@/components/events/event-form";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Image from 'next/image';
 
 // Tipos para os dados do evento
 interface Athlete {
@@ -65,12 +66,7 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
-  // Buscar eventos no carregamento da página
-  useEffect(() => {
-    fetchEvents();
-  }, [sortBy, sortOrder, searchQuery]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -95,7 +91,12 @@ export default function EventsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sortBy, sortOrder, searchQuery]);
+
+  // Buscar eventos no carregamento da página
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleEdit = (event: Event) => {
     setSelectedEvent(event);
@@ -367,7 +368,7 @@ export default function EventsPage() {
                 ) : (
                   <>
                     <div className="relative aspect-video">
-                      <img
+                      <Image fill 
                         src={event.image?.url || "/placeholder.png"}
                         alt={event.title}
                         className="absolute inset-0 h-full w-full object-cover"

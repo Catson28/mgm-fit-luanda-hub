@@ -156,6 +156,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Atualizar evento
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const event = await db.event.update({
       where: { id },
       data: {

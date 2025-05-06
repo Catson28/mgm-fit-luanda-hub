@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, Upload, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Calendar as CalendarIcon } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -33,6 +33,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select";
+// import Image from 'next/image';
 
 // Esquema de validação com Zod
 const eventSchema = z.object({
@@ -342,7 +343,7 @@ export function EventForm({ event, onSuccess }: EventFormProps) {
           <FormField
             control={form.control}
             name="imageFile"
-            render={({ field: { onChange, value, ...field } }) => (
+            render={({ field: { onChange, ...field } }) => (
               <FormItem>
                 <FormLabel>Imagem do Evento</FormLabel>
                 <FormControl>

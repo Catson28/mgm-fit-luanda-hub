@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Image from 'next/image';
 
 const features = [
   {
@@ -35,7 +36,7 @@ const Features = () => {
               className={`rounded-lg overflow-hidden shadow-lg animate-fade-in card-hover`}
             >
               <div className="h-48 overflow-hidden">
-                <img 
+                <Image fill  
                   src={feature.icon} 
                   alt={feature.title} 
                   className="w-full h-full object-cover"

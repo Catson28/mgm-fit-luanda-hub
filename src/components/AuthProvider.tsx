@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkInitialAuth = async () => {
       try {
         // Tentativa de verificar a autenticação sem redirecionar
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const response = await fetch('/api/user', {
           credentials: 'include'
         });

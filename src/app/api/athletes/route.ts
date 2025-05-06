@@ -1,6 +1,7 @@
 // src/app/api/athletes/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/services/lib/db";
+import { Prisma } from "@prisma/client";
 import { AthleteStatus } from "@prisma/client";
 import { z } from "zod";
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
     
     // Construir filtros para a query
-    const where: any = {};
+    const where: Prisma.AthleteWhereInput = {};
     
     // Filtro por nome ou telefone
     if (search) {

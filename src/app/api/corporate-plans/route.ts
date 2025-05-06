@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const corporatePlans = await db.corporatePlan.findMany();
     return NextResponse.json(corporatePlans);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch corporate plans' }, { status: 500 });
   }
 }
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(corporatePlan);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create corporate plan' }, { status: 500 });
   }
 }

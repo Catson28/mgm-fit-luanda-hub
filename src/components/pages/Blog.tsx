@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { NewspaperIcon } from 'lucide-react';
+import Image from 'next/image';
 
 const Blog = () => {
   const categorias = ["Todos", "Treino", "Nutrição", "Bem-estar", "Eventos"];
@@ -124,7 +125,7 @@ const Blog = () => {
           <Card className="overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="aspect-video overflow-hidden">
-                <img 
+                <Image fill  
                   src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
                   alt="Treinamento de alta intensidade" 
                   className="w-full h-full object-cover"
@@ -163,7 +164,7 @@ const Blog = () => {
             {artigos.map((artigo) => (
               <Card key={artigo.id} className="flex flex-col overflow-hidden">
                 <div className="aspect-video overflow-hidden">
-                  <img 
+                  <Image fill  
                     src={artigo.imagem} 
                     alt={artigo.titulo}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"

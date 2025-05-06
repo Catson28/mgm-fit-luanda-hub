@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CalendarPlus, Users } from 'lucide-react';
 import { NovoEventoModal } from '@/components/eventos/NovoEventoModal';
+import Image from 'next/image';
 
 interface Event {
   id: string;
@@ -103,7 +104,7 @@ const Eventos: React.FC = () => {
           {events.map((evento) => (
             <Card key={evento.id} className="overflow-hidden flex flex-col">
               <div className="aspect-video relative">
-                <img
+                <Image fill 
                   src={evento.image?.url}
                   alt={evento.title}
                   className="absolute inset-0 h-full w-full object-cover"

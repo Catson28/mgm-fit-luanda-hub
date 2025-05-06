@@ -10,8 +10,7 @@ const statusSchema = z.object({
 // PATCH /api/athletes/[id]/status - Atualizar o status de um atleta
 export async function PATCH(
   request: NextRequest,
-  //// @ts-expect-error - Ignorando erro de tipagem do Next.js
-  { params }: any
+  { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id;

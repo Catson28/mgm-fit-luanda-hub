@@ -2,6 +2,7 @@
 import { WebsiteLayout } from '@/components/layout/WebsiteLayout';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from 'next/image';
 
 const Sobre = () => {
   const equipe = [
@@ -70,7 +71,7 @@ const Sobre = () => {
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <img
+              <Image fill 
                 src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f"
                 alt="MGM Fitness Luanda"
                 className="rounded-lg shadow-lg max-h-80 object-cover"

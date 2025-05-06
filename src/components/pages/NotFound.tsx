@@ -2,6 +2,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const NotFound = () => {
   const location = useLocation();
@@ -25,7 +26,7 @@ const NotFound = () => {
           asChild
           className="bg-mgm-blue hover:bg-mgm-blue-dark"
         >
-          <a href="/">Voltar para o Dashboard</a>
+          <Link href="/">Voltar para o Dashboard</Link>
         </Button>
       </div>
     </div>

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AthleteStatus } from "@prisma/client";
 import { AthleteProps } from "@/components/pages/Atletas";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -240,7 +241,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
         <FormField
           control={form.control}
           name="imageFile"
-          render={({ field: { onChange, value, ...field } }) => (
+          render={({ field: { onChange, ...field } }) => (
             <FormItem>
               <FormLabel>Foto do Atleta</FormLabel>
               <FormControl>

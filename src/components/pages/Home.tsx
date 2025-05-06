@@ -1,9 +1,10 @@
 import { WebsiteLayout } from '@/components/layout/WebsiteLayout';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { DollarSign, Info, LayoutList, Mail, NewspaperIcon, UserPlus } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Home = () => {
   return (
@@ -31,7 +32,7 @@ const Home = () => {
                 </div>
               </div>
               <div className="bg-muted rounded-xl p-2">
-                <img
+                <Image fill 
                   src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81"
                   alt="MGM Fitness"
                   className="w-full h-full object-cover rounded-lg"
@@ -99,7 +100,7 @@ const Home = () => {
                 <CardDescription>Alcance seus objetivos com planos de treino personalizados</CardDescription>
               </CardHeader>
               <CardContent>
-                <img
+                <Image fill 
                   src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
                   alt="Treino personalizado"
                   className="w-full h-48 object-cover rounded-md mb-4"
@@ -117,7 +118,7 @@ const Home = () => {
                 <CardDescription>Tecnologia de ponta para o seu melhor desempenho</CardDescription>
               </CardHeader>
               <CardContent>
-                <img
+                <Image fill 
                   src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
                   alt="Equipamentos modernos"
                   className="w-full h-48 object-cover rounded-md mb-4"
@@ -135,7 +136,7 @@ const Home = () => {
                 <CardDescription>Comunidade que inspira e apoia</CardDescription>
               </CardHeader>
               <CardContent>
-                <img
+                <Image fill 
                   src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b"
                   alt="Ambiente motivador"
                   className="w-full h-48 object-cover rounded-md mb-4"

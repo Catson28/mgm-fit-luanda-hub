@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Layout } from "@/components/layout/Layout";
 import { PlusCircle, Search, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { GalleryForm } from "@/components/gallery/gallery-form";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Image from 'next/image';
 
 // Tipos para os dados da galeria
 interface Gallery {
@@ -46,12 +47,7 @@ export default function GalleryPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<Gallery | null>(null);
 
-  // Buscar itens da galeria no carregamento da página
-  useEffect(() => {
-    fetchGalleryItems();
-  }, [sortBy, sortOrder, searchQuery]);
-
-  const fetchGalleryItems = async () => {
+  const fetchGalleryItems = useCallback(async () => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -76,7 +72,12 @@ export default function GalleryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sortBy, sortOrder, searchQuery]);
+
+  // Buscar itens da galeria no carregamento da página
+  useEffect(() => {
+    fetchGalleryItems();
+  }, [fetchGalleryItems]);
 
   const handleEdit = (galleryItem: Gallery) => {
     setSelectedGalleryItem(galleryItem);
@@ -220,7 +221,7 @@ export default function GalleryPage() {
               <Card key={item.id} className="overflow-hidden group hover:shadow-md transition-all duration-200">
               {/* Imagem com overlay de botões ao passar o mouse */}
               <div className="aspect-video relative overflow-hidden">
-                <img
+                <Image fill 
                   src={item.image.url}
                   alt={item.title}
                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"

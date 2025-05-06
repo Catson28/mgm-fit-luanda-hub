@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Layout } from "@/components/layout/Layout";
@@ -82,12 +82,7 @@ export default function AthletesPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
-  // Buscar atletas no carregamento da página
-  useEffect(() => {
-    fetchAthletes();
-  }, [sortOrder]);
-
-  const fetchAthletes = async () => {
+  const fetchAthletes = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/athletes?sortOrder=${sortOrder}`);
@@ -102,7 +97,12 @@ export default function AthletesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sortOrder]);
+
+  // Buscar atletas no carregamento da página
+  useEffect(() => {
+    fetchAthletes();
+  }, [fetchAthletes]);
 
   const handleEdit = (athlete: AthleteProps) => {
     setSelectedAthlete(athlete);
@@ -158,13 +158,13 @@ export default function AthletesPage() {
     }
   };
 
-  const applyFilters = (filters: any) => {
+  const applyFilters = (filters: unknown) => {
     setFilterOptions(filters);
     setOpenFilters(false);
     fetchFilteredAthletes(filters);
   };
 
-  const fetchFilteredAthletes = async (filters: any) => {
+  const fetchFilteredAthletes = async (filters: unknown) => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams();

@@ -19,7 +19,7 @@ const athleteSchema = z.object({
 // Isso permitirá que o código compile enquanto mantém a funcionalidade
 export const GET = async (
   request: NextRequest,
-  { params }: any
+  { params }: { params: { id: string } }
 ) => {
   try {
     const id = params.id;
@@ -65,7 +65,7 @@ export const GET = async (
 export const PUT = async (
   request: NextRequest,
   // //@ts-expect-error - Ignorando erro de tipagem do Next.js
-  { params }: any
+  { params }: { params: { id: string } }
 ) => {
   try {
     const id = params.id;
@@ -139,8 +139,8 @@ export const PUT = async (
 
 export const DELETE = async (
   request: NextRequest,
-  // // @ts-expect-error - Ignorando erro de tipagem do Next.js
-  { params }: any
+  // @ts-expect-error - Ignorando erro de tipagem do Next.js
+  { params }: unknown
 ) => {
   try {
     const id = params.id;
