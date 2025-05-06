@@ -330,7 +330,7 @@ export default function AthletePage() {
                     </div>
                   </div>
                 )}
-                {athlete.person?.phones?.length > 0 && (
+                {athlete.person && athlete.person.phones && athlete.person.phones.length > 0 && (
                   <div className="flex items-center">
                     <Phone className="h-5 w-5 text-muted-foreground mr-2" />
                     <div>
@@ -488,7 +488,7 @@ export default function AthletePage() {
                               />
                             ) : (
                               <div className="flex items-center justify-center h-full">
-                                <FileText className="h-12 w-12 text-gray-400" />
+                                <FileText className="h-12 w-12 text-gray-400 TEAM=" />
                               </div>
                             )}
                           </div>

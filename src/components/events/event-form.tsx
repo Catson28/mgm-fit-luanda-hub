@@ -173,8 +173,8 @@ export function EventForm({ event, onSuccess }: EventFormProps) {
     setIsSubmitting(true);
     try {
       let imageData: { url?: string; publicId?: string } = {
-        url: data.imageUrl,
-        publicId: data.imagePublicId,
+        url: data.imageUrl === null ? undefined : data.imageUrl,
+        publicId: data.imagePublicId === null ? undefined : data.imagePublicId,
       };
 
       // Fazer upload da imagem se um arquivo foi selecionado
@@ -253,7 +253,11 @@ export function EventForm({ event, onSuccess }: EventFormProps) {
               <FormItem>
                 <FormLabel>Local</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex.: MGM Fitness Arena" {...field} />
+                  <Input 
+                    placeholder="Ex.: MGM Fitness Arena" 
+                    {...field} 
+                    value={field.value || ""} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

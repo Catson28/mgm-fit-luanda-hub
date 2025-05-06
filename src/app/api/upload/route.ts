@@ -4,6 +4,13 @@ import { v2 as cloudinary } from "cloudinary";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
+// Definindo a interface para o resultado do upload do Cloudinary
+interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+  [key: string]: any; // Para outras propriedades que podem existir no resultado
+}
+
 // Configuração do Cloudinary (já feita em lib/cloudinary.ts, mas mantida aqui para referência)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,14 +22,14 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
-
+    
     if (!file) {
       return NextResponse.json(
         { error: "Nenhum arquivo fornecido" },
         { status: 400 }
       );
     }
-
+    
     // Verificar tipo de arquivo
     if (!file.type.startsWith("image/")) {
       return NextResponse.json(
@@ -30,13 +37,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
+    
     // Converter o arquivo para buffer
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = `${uuidv4()}${path.extname(file.name)}`;
-
+    
     // Fazer upload para o Cloudinary
-    const uploadResult = await new Promise((resolve, reject) => {
+    const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           public_id: filename, // Nome do arquivo no Cloudinary
@@ -44,7 +51,7 @@ export async function POST(req: NextRequest) {
         },
         (error, result) => {
           if (error) reject(error);
-          else resolve(result);
+          else resolve(result as CloudinaryUploadResult);
         }
       );
       stream.end(buffer);

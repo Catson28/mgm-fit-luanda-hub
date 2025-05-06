@@ -36,8 +36,8 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
 }
 
 // Function to get auth token from cookies (for server components)
-export function getAuthToken(): string | undefined {
-  const cookieStore = cookies();
+export async function getAuthToken(): Promise<string | undefined> {
+  const cookieStore = await cookies();
   return cookieStore.get("accessToken")?.value;
 }
 

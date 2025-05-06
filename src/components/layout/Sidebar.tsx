@@ -8,6 +8,14 @@ import {
   Home, Info, LayoutList, NewspaperIcon, Mail, Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LucideIcon } from 'lucide-react';
+
+// Definindo interface para os itens de menu
+interface MenuItem {
+  name: string;
+  icon: LucideIcon;
+  path: string;
+}
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -23,7 +31,7 @@ export function Sidebar() {
   };
 
   // Menu de administração
-  const adminMenuItems = [
+  const adminMenuItems: MenuItem[] = [
     { name: 'Dashboard', icon: BarChart, path: '/' },
     { name: 'Home', icon: Home, path: '/admin' },
     { name: 'Atletas', icon: Users, path: '/atletas' },
@@ -35,7 +43,7 @@ export function Sidebar() {
   ];
 
   // Menu do site
-  const siteMenuItems = [
+  const siteMenuItems: MenuItem[] = [
     { name: 'Sobre', icon: Info, path: '/sobre' },
     { name: 'Funcionalidades', icon: LayoutList, path: '/funcionalidades' },
     { name: 'Preços', icon: DollarSign, path: '/precos' },
@@ -43,7 +51,7 @@ export function Sidebar() {
     { name: 'Contactos', icon: Mail, path: '/contactos' },
   ];
 
-  const renderMenuItem = (item) => {
+  const renderMenuItem = (item: MenuItem) => {
     const isActive = pathname === item.path;
 
     return (

@@ -1,23 +1,20 @@
 // src/app/api/athletes/[id]/status/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/services/lib/db";
-import { AthleteStatus } from "@prisma/client";
 import { z } from "zod";
 
 const statusSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]),
 });
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 // PATCH /api/athletes/[id]/status - Atualizar o status de um atleta
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(
+  request: NextRequest,
+  //// @ts-expect-error - Ignorando erro de tipagem do Next.js
+  { params }: any
+) {
   try {
-    const { id } = params;
+    const id = params.id;
     const body = await request.json();
 
     // Validar o status recebido

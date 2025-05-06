@@ -31,7 +31,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { AthleteStatus } from "@prisma/client";
-import { AthleteProps } from "@/app/atletas/page";
+import { AthleteProps } from "@/components/pages/Atletas";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Definir esquema de validação com zod
@@ -166,8 +166,8 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
 
     try {
       let imageData: { url?: string; publicId?: string } = {
-        url: data.imageUrl,
-        publicId: data.imagePublicId,
+        url: data.imageUrl ?? undefined,
+        publicId: data.imagePublicId ?? undefined,
       };
 
       // Fazer upload da imagem se um arquivo foi selecionado
@@ -204,7 +204,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
       toast({
         title: athlete ? "Atleta atualizado" : "Atleta criado",
         description: athlete
-          ? "As informações do atleta foram atualizadas com sucesso."
+          ? "As informações do atleta foram atual Wadas com sucesso."
           : "Novo atleta cadastrado com sucesso.",
       });
 
@@ -321,7 +321,12 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
               <FormItem>
                 <FormLabel>Iniciais</FormLabel>
                 <FormControl>
-                  <Input placeholder="RF" {...field} />
+                  <Input
+                    placeholder="RF"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || undefined)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -335,7 +340,11 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
               <FormItem>
                 <FormLabel>Telefone</FormLabel>
                 <FormControl>
-                  <Input placeholder="+244 923 456 789" {...field} />
+                  <Input 
+                    placeholder="+244 923 456 789" 
+                    {...field} 
+                    value={field.value ?? ""} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -348,7 +357,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Plano</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um plano" />
@@ -361,7 +370,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
                       </div>
                     ) : (
                       <>
-                        <SelectItem value={undefined}>Sem plano</SelectItem>
+                        <SelectItem value="">Sem plano</SelectItem>
                         {plans.map((plan) => (
                           <SelectItem key={plan.id} value={plan.id}>
                             {plan.name}

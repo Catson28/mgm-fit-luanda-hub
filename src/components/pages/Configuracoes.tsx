@@ -1,10 +1,8 @@
-"use client"
+"use client";
 
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Settings } from 'lucide-react';
@@ -14,13 +12,26 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  // FormLabel,
+  FormLabel,
 } from '@/components/ui/form';
-import { FormLabel } from '@/components/ui/form-custom';
-import { useForm } from 'react-hook-form';
+import { Input } from "@/components/ui/input";
+import { useForm } from 'react-hook-form'; // Adicionada a importação
+
+// Definição do tipo para os dados do formulário
+interface ConfiguracoesFormData {
+  nome: string;
+  email: string;
+  telefone: string;
+  endereco: string;
+  notificacoes_email: boolean;
+  notificacoes_app: boolean;
+  relatorios_automaticos: boolean;
+  tema_escuro: boolean;
+}
 
 const Configuracoes = () => {
-  const form = useForm({
+  // Usando a tipagem correta no useForm
+  const form = useForm<ConfiguracoesFormData>({
     defaultValues: {
       nome: 'MGM Fitness Luanda',
       email: 'contato@mgmfitness.co.ao',
@@ -33,7 +44,8 @@ const Configuracoes = () => {
     }
   });
 
-  const onSubmit = (data) => {
+  // Função onSubmit tipada corretamente
+  const onSubmit = (data: ConfiguracoesFormData) => {
     console.log('Configurações atualizadas:', data);
   };
 
@@ -196,8 +208,35 @@ const Configuracoes = () => {
                 </CardContent>
               </Card>
 
-              {/* Rest of your form fields... */}
-              {/* Make sure all form fields use FormField component */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Aparência</CardTitle>
+                  <CardDescription>
+                    Configurações visuais da interface
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="tema_escuro"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Modo Escuro
+                          </FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
 
               <div className="flex justify-end">
                 <Button type="submit" className="bg-mgm-blue hover:bg-mgm-blue-dark">
@@ -207,7 +246,6 @@ const Configuracoes = () => {
             </form>
           </Form>
         </div>
-
 
         <div className="space-y-6">
           <Card>
@@ -236,36 +274,6 @@ const Configuracoes = () => {
                   Endereço IP: 197.218.177.xxx
                 </p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Aparência</CardTitle>
-              <CardDescription>
-                Configurações visuais da interface
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* <FormField
-                control={form.control}
-                name="tema_escuro"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Modo Escuro
-                      </FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              /> */}
             </CardContent>
           </Card>
         </div>

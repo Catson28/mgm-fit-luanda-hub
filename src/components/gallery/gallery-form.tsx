@@ -68,7 +68,7 @@ export function GalleryForm({ galleryItem, onSuccess }: GalleryFormProps) {
       title: galleryItem?.title || "",
       description: galleryItem?.description || "",
       date: galleryItem?.date ? new Date(galleryItem.date) : null,
-      imageFile: null,
+      imageFile: undefined,
       imageUrl: galleryItem?.image?.url || null,
       imagePublicId: galleryItem?.image?.publicId || null,
     },
@@ -76,7 +76,7 @@ export function GalleryForm({ galleryItem, onSuccess }: GalleryFormProps) {
 
   // Atualizar preview da imagem quando um arquivo é selecionado
   const handleImageChange = useCallback(
-    (file: File | null) => {
+    (file: File | undefined) => {
       if (file) {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -123,8 +123,8 @@ export function GalleryForm({ galleryItem, onSuccess }: GalleryFormProps) {
     setIsSubmitting(true);
     try {
       let imageData: { url?: string; publicId?: string } = {
-        url: data.imageUrl,
-        publicId: data.imagePublicId,
+        url: data.imageUrl ?? undefined,
+        publicId: data.imagePublicId ?? undefined,
       };
 
       // Fazer upload da imagem se um arquivo foi selecionado
@@ -224,7 +224,7 @@ export function GalleryForm({ galleryItem, onSuccess }: GalleryFormProps) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value || undefined}
                       onSelect={field.onChange}
                       initialFocus
                     />

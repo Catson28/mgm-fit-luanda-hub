@@ -1,10 +1,12 @@
 "use client"
 import { Label } from "@/components/ui/label";
-import { useFormField, FormItemContext } from "@/components/ui/form"
-import { createContext, useContext } from "react";
+import { useFormField } from "@/components/ui/form"
+import { createContext, useContext, ReactNode } from "react";
+import { LabelProps } from "@radix-ui/react-label";
+import { HTMLAttributes } from "react";
 
 // Este é um componente personalizado para resolver o problema com FormLabel
-export function FormLabel({ className, ...props }) {
+export function FormLabel({ className, ...props }: LabelProps) {
   // Use try/catch para evitar erros de renderização no servidor
   try {
     const { error, formItemId } = useFormField()
@@ -23,7 +25,10 @@ export function FormLabel({ className, ...props }) {
 }
 
 // Se você precisar de um FormDescription personalizado também
-export function FormDescription({ className, ...props }) {
+export function FormDescription({ 
+  className, 
+  ...props 
+}: HTMLAttributes<HTMLParagraphElement>) {
   try {
     const { formDescriptionId } = useFormField()
 
@@ -40,6 +45,10 @@ export function FormDescription({ className, ...props }) {
 }
 
 // Componente de wrapper para garantir que components do Form serão usados apropriadamente
-export function FormWrapper({ children }) {
+interface FormWrapperProps {
+  children: ReactNode;
+}
+
+export function FormWrapper({ children }: FormWrapperProps) {
   return <>{children}</>
 }

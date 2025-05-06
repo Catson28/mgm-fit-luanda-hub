@@ -2,13 +2,39 @@
 import { ReactNode } from 'react';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 
 interface WebsiteLayoutProps {
   children: ReactNode;
 }
 
+interface NavItem {
+  name: string;
+  path: string;
+}
+
 export function WebsiteLayout({ children }: WebsiteLayoutProps) {
+  const pathname = usePathname();
+  
+  const navigationItems: NavItem[] = [
+    { name: 'Home', path: '/admin' },
+    { name: 'Sobre', path: '/sobre' },
+    { name: 'Funcionalidades', path: '/funcionalidades' },
+    { name: 'Preços', path: '/precos' },
+    { name: 'Blog', path: '/blog' },
+    { name: 'Contactos', path: '/contactos' },
+  ];
+  
+  const mobileNavItems: NavItem[] = [
+    { name: 'Home', path: '/home' },
+    { name: 'Sobre', path: '/sobre' },
+    { name: 'Funcionalidades', path: '/funcionalidades' },
+    { name: 'Preços', path: '/precos' },
+    { name: 'Blog', path: '/blog' },
+    { name: 'Contactos', path: '/contactos' },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header/Navigation */}
@@ -23,24 +49,19 @@ export function WebsiteLayout({ children }: WebsiteLayoutProps) {
             <div className="hidden md:block">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {[
-                    { name: 'Home', path: '/admin' },
-                    { name: 'Sobre', path: '/sobre' },
-                    { name: 'Funcionalidades', path: '/funcionalidades' },
-                    { name: 'Preços', path: '/precos' },
-                    { name: 'Blog', path: '/blog' },
-                    { name: 'Contactos', path: '/contactos' },
-                  ].map((item) => (
-                    <NavigationMenuItem key={item.name}>
-                      <Link href={item.path}>
-                        {({ isActive }) => (
+                  {navigationItems.map((item) => {
+                    const isActive = pathname === item.path;
+                    
+                    return (
+                      <NavigationMenuItem key={item.name}>
+                        <Link href={item.path} legacyBehavior passHref>
                           <NavigationMenuLink className={`${navigationMenuTriggerStyle()} ${isActive ? 'bg-white/20' : ''}`}>
                             {item.name}
                           </NavigationMenuLink>
-                        )}
-                      </Link>
-                    </NavigationMenuItem>
-                  ))}
+                        </Link>
+                      </NavigationMenuItem>
+                    );
+                  })}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -63,22 +84,19 @@ export function WebsiteLayout({ children }: WebsiteLayoutProps) {
       <div className="md:hidden bg-mgm-blue/90 pb-2">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap justify-center gap-2">
-            {[
-              { name: 'Home', path: '/home' },
-              { name: 'Sobre', path: '/sobre' },
-              { name: 'Funcionalidades', path: '/funcionalidades' },
-              { name: 'Preços', path: '/precos' },
-              { name: 'Blog', path: '/blog' },
-              { name: 'Contactos', path: '/contactos' },
-            ].map((item) => (
-              <Link
-                key={item.name}
-                href={item.path}
-                className={({ isActive }) => `px-3 py-1 rounded-full text-sm ${isActive ? 'bg-white text-mgm-blue' : 'bg-mgm-blue-dark/40 text-white'}`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {mobileNavItems.map((item) => {
+              const isActive = pathname === item.path;
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.path}
+                  className={`px-3 py-1 rounded-full text-sm ${isActive ? 'bg-white text-mgm-blue' : 'bg-mgm-blue-dark/40 text-white'}`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
