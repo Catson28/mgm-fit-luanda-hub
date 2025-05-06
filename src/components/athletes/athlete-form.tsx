@@ -352,13 +352,19 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
             )}
           />
 
+
+
           <FormField
             control={form.control}
             name="planId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Plano</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || undefined}
+                  defaultValue={field.value || undefined}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um plano" />
@@ -371,7 +377,8 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
                       </div>
                     ) : (
                       <>
-                        <SelectItem value="">Sem plano</SelectItem>
+                        {/* O problema está aqui - não podemos ter value="" */}
+                        <SelectItem value="null">Sem plano</SelectItem>
                         {plans.map((plan) => (
                           <SelectItem key={plan.id} value={plan.id}>
                             {plan.name}
