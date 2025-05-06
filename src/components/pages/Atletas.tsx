@@ -65,7 +65,7 @@ export interface AthleteProps {
   createdAt: Date;
 }
 
-export default function Atletas() {
+export default function AthletesPage() {
   const router = useRouter();
   const [athletes, setAthletes] = useState<AthleteProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -212,7 +212,7 @@ export default function Atletas() {
         );
       case "INACTIVE":
         return (
-          <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">
+          <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-green-100">
             Inativo
           </Badge>
         );
@@ -249,11 +249,13 @@ export default function Atletas() {
                 <PlusCircle className="mr-2 h-4 w-4" /> Novo Atleta
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="h-full w-full max-h-full overflow-y-auto sm:max-w-xl sm:h-auto sm:max-h-[90vh] p-4 flex flex-col">
               <DialogHeader>
                 <DialogTitle>{selectedAthlete ? "Editar Atleta" : "Novo Atleta"}</DialogTitle>
               </DialogHeader>
-              <AthleteForm athlete={selectedAthlete} onSuccess={handleFormSubmit} />
+              <div className="flex-1 overflow-y-auto">
+                <AthleteForm athlete={selectedAthlete} onSuccess={handleFormSubmit} />
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -318,7 +320,7 @@ export default function Atletas() {
       </Card>
 
       {isLoading ? (
-        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3 md:grid-cols-4"}>
+        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3"}>
           {[...Array(5)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               {viewMode === "list" ? (
@@ -352,7 +354,7 @@ export default function Atletas() {
           ))}
         </div>
       ) : (
-        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3 md:grid-cols-4"}>
+        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3"}>
           {athletes.length === 0 ? (
             <div className="text-center p-8 col-span-full">
               <p className="text-lg font-medium">Nenhum atleta encontrado</p>
