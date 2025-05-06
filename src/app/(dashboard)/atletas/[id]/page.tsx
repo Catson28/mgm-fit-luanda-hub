@@ -1,0 +1,533 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Layout } from "@/components/layout/Layout";
+import {
+  Calendar,
+  CreditCard,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+  User,
+  Star,
+  Award,
+  Clock,
+  Check,
+  X,
+  ChevronLeft,
+  Edit,
+} from "lucide-react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Tipagem baseada no retorno da API
+interface Athlete {
+  id: string;
+  name: string;
+  initials: string | null;
+  phone: string | null;
+  membershipStart: string | null;
+  status: string;
+  planId: string | null;
+  personId: string | null;
+  imageId: string | null;
+  plan: {
+    id: string;
+    name: string;
+    price: number;
+    period: string;
+    description: string | null;
+    isPopular: boolean;
+    status: string;
+    features: { id: string; name: string; included: boolean }[] | null;
+  } | null;
+  person: {
+    id: string;
+    name: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    address: string | null;
+    birthDate: string | null;
+    phones: { id: string; phone: string }[];
+  } | null;
+  image: {
+    id: string;
+    url: string;
+    publicId: string | null;
+  } | null;
+  eventRegistrations: {
+    id: string;
+    eventId: string;
+    athleteId: string;
+    registeredAt: string;
+    event: {
+      id: string;
+      title: string;
+      description: string | null;
+      date: string;
+      location: string | null;
+      status: string;
+      image: {
+        id: string;
+        url: string;
+        publicId: string | null;
+      } | null;
+    };
+  }[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export default function AthletePage() {
+  const params = useParams();
+  const router = useRouter();
+  const [athlete, setAthlete] = useState<Athlete | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAthlete = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          toast.error("Por favor, faça login para continuar.");
+          router.push("/login");
+          return;
+        }
+
+        const response = await fetch(`/api/atletas/${params.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Erro ao carregar atleta");
+        }
+
+        const data = await response.json();
+        setAthlete(data);
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Erro desconhecido ao carregar atleta"
+        );
+        console.error("Erro ao buscar dados do atleta:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchAthlete();
+    }
+  }, [params.id, router]);
+
+  // Função auxiliar para formatar data
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "-";
+    try {
+      return format(new Date(dateString), "dd MMM yyyy", { locale: ptBR });
+    } catch {
+      return "Data inválida";
+    }
+  };
+
+  // Função para determinar a cor do status do atleta
+  const getAthleteStatusBadge = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Ativo
+          </Badge>
+        );
+      case "INACTIVE":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+            Inativo
+          </Badge>
+        );
+      case "SUSPENDED":
+        return (
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+            Suspenso
+          </Badge>
+        );
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    }
+  };
+
+  // Função para determinar a cor do status do evento
+  const getEventStatusBadge = (status: string) => {
+    switch (status) {
+      case "SCHEDULED":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            Agendado
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Concluído
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+            Cancelado
+          </Badge>
+        );
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    }
+  };
+
+  // Função para determinar a badge do plano
+  const getPlanBadge = (planName?: string) => {
+    if (!planName) return <Badge className="bg-gray-500">Sem plano</Badge>;
+    if (planName.includes("Anual")) return <Badge className="bg-mgm-blue">Anual</Badge>;
+    if (planName.includes("Mensal")) return <Badge className="bg-green-500">Mensal</Badge>;
+    if (planName.includes("Semanal")) return <Badge className="bg-yellow-500">Semanal</Badge>;
+    return <Badge className="bg-gray-500">{planName}</Badge>;
+  };
+
+  // Renderização de estados de loading
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="col-span-1">
+              <CardContent className="p-6 flex flex-col items-center">
+                <Skeleton className="h-32 w-32 rounded-full mb-4" />
+                <Skeleton className="h-8 w-64 mb-2" />
+                <Skeleton className="h-4 w-48 mb-4" />
+                <div className="space-y-4 w-full">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+            <div className="col-span-1 md:col-span-2 space-y-8">
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-8 w-64 mb-4" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-6 w-48" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-8 w-64 mb-4" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-6 w-48" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!athlete) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                Atleta não encontrado
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                Não foi possível encontrar informações para este atleta.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                className="flex items-center mx-auto"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Organizar eventos por data (mais recentes primeiro)
+  const sortedEvents = [...athlete.eventRegistrations].sort((a, b) =>
+    new Date(b.event.date).getTime() - new Date(a.event.date).getTime()
+  );
+
+  return (
+    <Layout>
+        {/* Cabeçalho */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="flex items-center mr-4"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <h1 className="font-heading text-3xl font-bold text-gray-900">
+              Perfil do Atleta
+            </h1>
+          </div>
+          <Button
+            className="bg-mgm-blue hover:bg-mgm-blue-dark"
+            onClick={() => router.push(`/atletas/${athlete.id}/editar`)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Editar Atleta
+          </Button>
+        </div>
+
+        {/* Conteúdo principal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Coluna 1: Informações principais */}
+          <Card className="col-span-1">
+            <CardContent className="p-6 flex flex-col items-center">
+              <Avatar className="h-32 w-32 mb-4">
+                <AvatarImage src={athlete.image?.url || ""} alt={athlete.name} />
+                <AvatarFallback className="bg-mgm-blue text-white text-4xl">
+                  {athlete.initials || athlete.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <h2 className="text-2xl font-semibold text-gray-900 text-center">
+                {athlete.name}
+              </h2>
+              <div className="mt-2">{getAthleteStatusBadge(athlete.status)}</div>
+              <div className="mt-6 space-y-4 w-full">
+                {athlete.phone && (
+                  <div className="flex items-center">
+                    <Phone className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Telefone</p>
+                      <p className="text-gray-900">{athlete.phone}</p>
+                    </div>
+                  </div>
+                )}
+                {athlete.person?.phones?.length > 0 && (
+                  <div className="flex items-center">
+                    <Phone className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Telefones Adicionais
+                      </p>
+                      {athlete.person.phones.map((phone) => (
+                        <p key={phone.id} className="text-gray-900">
+                          {phone.phone}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {athlete.person?.email && (
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="text-gray-900 break-all">
+                        {athlete.person.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {athlete.person?.birthDate && (
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Data de Nascimento
+                      </p>
+                      <p className="text-gray-900">
+                        {formatDate(athlete.person.birthDate)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {athlete.person?.address && (
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Endereço</p>
+                      <p className="text-gray-900">{athlete.person.address}</p>
+                    </div>
+                  </div>
+                )}
+                {athlete.membershipStart && (
+                  <div className="flex items-center">
+                    <Clock className="h-5 w-5 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Membro desde</p>
+                      <p className="text-gray-900">
+                        {formatDate(athlete.membershipStart)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Coluna 2: Plano e Eventos */}
+          <div className="col-span-1 md:col-span-2 space-y-8">
+            {/* Seção do plano */}
+            {athlete.plan && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CreditCard className="h-5 w-5 text-mgm-blue mr-2" />
+                    Plano de Assinatura
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                        {athlete.plan.name}
+                        {athlete.plan.isPopular && (
+                          <Badge className="ml-2 bg-yellow-100 text-yellow-800">
+                            <Star className="h-3 w-3 mr-1" />
+                            Popular
+                          </Badge>
+                        )}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {athlete.plan.description || "Sem descrição"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">
+                        Kz {athlete.plan.price.toLocaleString("pt-BR")}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          /{athlete.plan.period}
+                        </span>
+                      </p>
+                      {getPlanBadge(athlete.plan.name)}
+                    </div>
+                  </div>
+                  {athlete.plan.features && athlete.plan.features.length > 0 && (
+                    <div className="mt-6 border-t border-gray-200 pt-6">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Recursos incluídos
+                      </h4>
+                      <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {athlete.plan.features.map((feature) => (
+                          <li key={feature.id} className="flex items-center">
+                            {feature.included ? (
+                              <Check className="h-5 w-5 text-green-500 mr-2" />
+                            ) : (
+                              <X className="h-5 w-5 text-red-500 mr-2" />
+                            )}
+                            <span className="text-gray-700">{feature.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Seção de eventos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Award className="h-5 w-5 text-mgm-blue mr-2" />
+                  Eventos
+                  <span className="ml-2 text-sm text-muted-foreground font-normal">
+                    ({athlete.eventRegistrations.length})
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {athlete.eventRegistrations.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      Este atleta ainda não participou de nenhum evento.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {sortedEvents.map((registration) => (
+                      <div
+                        key={registration.id}
+                        className="flex flex-col sm:flex-row border-b border-gray-200 pb-6 last:border-0 last:pb-0 gap-4"
+                      >
+                        <div className="sm:w-1/4">
+                          <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
+                            {registration.event.image ? (
+                              <img
+                                src={registration.event.image.url}
+                                alt={registration.event.title}
+                                className="object-cover w-full h-full"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <FileText className="h-12 w-12 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="sm:w-3/4">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {registration.event.title}
+                            </h3>
+                            {getEventStatusBadge(registration.event.status)}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground mb-3">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            {formatDate(registration.event.date)}
+                            {registration.event.location && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <MapPin className="h-4 w-4 mr-1" />
+                                {registration.event.location}
+                              </>
+                            )}
+                          </div>
+                          {registration.event.description && (
+                            <p className="text-gray-700 mb-4">
+                              {registration.event.description}
+                            </p>
+                          )}
+                          <div className="text-sm text-muted-foreground">
+                            Registrado em: {formatDate(registration.registeredAt)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+    </Layout>
+  );
+}
