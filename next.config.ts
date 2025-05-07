@@ -12,9 +12,9 @@ const pwaConfig = {
 const nextConfig = {
     images: {
         domains: ['localhost', 'res.cloudinary.com', 'tyulaerp.vercel.app'],
-    },   
+    },
     typescript: {
-      ignoreBuildErrors: true, // Ignora erros do TypeScript no build
+        ignoreBuildErrors: true, // Ignora erros do TypeScript no build
     },
     // eslint: {
     //   ignoreDuringBuilds: true, // Ignora o lint no build

@@ -351,9 +351,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
               </FormItem>
             )}
           />
-
-
-
+          
           <FormField
             control={form.control}
             name="planId"
