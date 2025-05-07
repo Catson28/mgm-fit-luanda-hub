@@ -14,13 +14,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
@@ -254,10 +247,10 @@ export function EventForm({ event, onSuccess }: EventFormProps) {
               <FormItem>
                 <FormLabel>Local</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Ex.: MGM Fitness Arena" 
-                    {...field} 
-                    value={field.value || ""} 
+                  <Input
+                    placeholder="Ex.: MGM Fitness Arena"
+                    {...field}
+                    value={field.value || ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -322,19 +315,26 @@ export function EventForm({ event, onSuccess }: EventFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status*</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="SCHEDULED">Agendado</SelectItem>
-                    <SelectItem value="ONGOING">Em Andamento</SelectItem>
-                    <SelectItem value="COMPLETED">Concluído</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <div className="relative">
+                    <select
+                      className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 appearance-none"
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    >
+                      <option value="" disabled>Selecione o status</option>
+                      <option value="SCHEDULED">Agendado</option>
+                      <option value="ONGOING">Em Andamento</option>
+                      <option value="COMPLETED">Concluído</option>
+                      <option value="CANCELLED">Cancelado</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
