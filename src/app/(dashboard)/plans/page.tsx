@@ -56,39 +56,6 @@ export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
-  // ... outros estados ...
-  const [isHandlingFocus, setIsHandlingFocus] = useState(false);
-
-  // Handler seguro para eventos de foco
-  const handleSafeFocus = useCallback((e: React.FocusEvent) => {
-    if (isHandlingFocus) return;
-
-    setIsHandlingFocus(true);
-    console.log('Focus event on:', e.target);
-
-    // Adicione aqui qualquer lógica necessária
-    // que não cause redirecionamento de foco
-
-    setTimeout(() => {
-      setIsHandlingFocus(false);
-    }, 100);
-  }, [isHandlingFocus]);
-
-  // Monitoramento de eventos de foco (para diagnóstico)
-  useEffect(() => {
-    const logFocusEvent = (e: Event) => {
-      console.log(`Focus ${e.type} on:`, e.target);
-    };
-
-    window.addEventListener('focusin', logFocusEvent);
-    window.addEventListener('focusout', logFocusEvent);
-
-    return () => {
-      window.removeEventListener('focusin', logFocusEvent);
-      window.removeEventListener('focusout', logFocusEvent);
-    };
-  }, []);
-
   const fetchPlans = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -195,15 +162,9 @@ export default function PlansPage() {
               </Button>
             </DialogTrigger>
             <DialogContent
-              onOpenAutoFocus={(e) => {
-                e.preventDefault();
-                handleSafeFocus(e);
-              }}
-              onCloseAutoFocus={(e) => {
-                e.preventDefault();
-                handleSafeFocus(e);
-              }}
-              className="sm:max-w-xl">
+              className="sm:max-w-xl"
+            // Removido os handlers de autofocus que estavam causando problemas
+            >
               <DialogHeader>
                 <DialogTitle>{selectedPlan ? "Editar Plano" : "Novo Plano"}</DialogTitle>
               </DialogHeader>
@@ -225,12 +186,11 @@ export default function PlansPage() {
             >
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                onFocus={handleSafeFocus}
-                onBlur={handleSafeFocus}
                 placeholder="Buscar por nome do plano..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
+              // Removido os eventos de foco que estavam causando problemas
               />
             </form>
             <div className="flex gap-2 flex-wrap">
@@ -240,7 +200,7 @@ export default function PlansPage() {
                     Ordenar por: {sortBy === "name" ? "Nome" : "Preço"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => handleSortBy("name")}>
                     Nome
                   </DropdownMenuItem>
@@ -276,18 +236,18 @@ export default function PlansPage() {
       </Card>
 
       {isLoading ? (
-        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3 md:grid-cols-4"}>
+        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3"}>
           {[...Array(5)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               {viewMode === "list" ? (
                 <CardContent className="p-6">
                   <div className="grid md:grid-cols-5 gap-4">
                     <div className="space-y-2 md:col-span-2">
-                      <Skeleton className="h-4 w-[150px]" />
-                      <Skeleton className="h-4 w-[200px]" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-40" />
                     </div>
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-20" />
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16" />
                     <div className="flex justify-end gap-2">
                       <Skeleton className="h-8 w-16" />
                       <Skeleton className="h-8 w-16" />
@@ -297,12 +257,12 @@ export default function PlansPage() {
               ) : (
                 <div className="flex flex-col">
                   <CardHeader>
-                    <Skeleton className="h-6 w-[150px] mb-2" />
-                    <Skeleton className="h-4 w-[200px]" />
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-40" />
                   </CardHeader>
                   <CardContent>
-                    <Skeleton className="h-8 w-[100px] mb-2" />
-                    <Skeleton className="h-4 w-[150px]" />
+                    <Skeleton className="h-8 w-24 mb-2" />
+                    <Skeleton className="h-4 w-32" />
                   </CardContent>
                 </div>
               )}
@@ -310,7 +270,7 @@ export default function PlansPage() {
           ))}
         </div>
       ) : (
-        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3 md:grid-cols-4"}>
+        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3"}>
           {plans.length === 0 ? (
             <div className="text-center p-8 col-span-full">
               <p className="text-lg font-medium">Nenhum plano encontrado</p>
