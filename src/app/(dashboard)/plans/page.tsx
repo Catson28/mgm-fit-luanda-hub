@@ -56,6 +56,39 @@ export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
+  // ... outros estados ...
+  const [isHandlingFocus, setIsHandlingFocus] = useState(false);
+
+  // Handler seguro para eventos de foco
+  const handleSafeFocus = useCallback((e: React.FocusEvent) => {
+    if (isHandlingFocus) return;
+
+    setIsHandlingFocus(true);
+    console.log('Focus event on:', e.target);
+
+    // Adicione aqui qualquer lógica necessária
+    // que não cause redirecionamento de foco
+
+    setTimeout(() => {
+      setIsHandlingFocus(false);
+    }, 100);
+  }, [isHandlingFocus]);
+
+  // Monitoramento de eventos de foco (para diagnóstico)
+  useEffect(() => {
+    const logFocusEvent = (e: Event) => {
+      console.log(`Focus ${e.type} on:`, e.target);
+    };
+
+    window.addEventListener('focusin', logFocusEvent);
+    window.addEventListener('focusout', logFocusEvent);
+
+    return () => {
+      window.removeEventListener('focusin', logFocusEvent);
+      window.removeEventListener('focusout', logFocusEvent);
+    };
+  }, []);
+
   const fetchPlans = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -135,7 +168,6 @@ export default function PlansPage() {
     setViewMode((prev) => (prev === "list" ? "grid" : "list"));
   };
 
-  // Updated getStatusBadge function
   const getStatusBadge = (status: "ACTIVE" | "INACTIVE") => {
     return status === "ACTIVE" ? (
       <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
@@ -147,12 +179,6 @@ export default function PlansPage() {
       </Badge>
     );
   };
-
-  // Generate unique IDs for accessibility attributes
-  const sortDropdownId = "sort-dropdown";
-  const sortDropdownDescId = "sort-dropdown-desc";
-  // const moreOptionsId = "more-options";
-  // const moreOptionsDescId = "more-options-desc";
 
   return (
     <Layout>
@@ -168,7 +194,16 @@ export default function PlansPage() {
                 <PlusCircle className="mr-2 h-4 w-4" /> Novo Plano
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent
+              onOpenAutoFocus={(e) => {
+                e.preventDefault();
+                handleSafeFocus(e);
+              }}
+              onCloseAutoFocus={(e) => {
+                e.preventDefault();
+                handleSafeFocus(e);
+              }}
+              className="sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle>{selectedPlan ? "Editar Plano" : "Novo Plano"}</DialogTitle>
               </DialogHeader>
@@ -190,25 +225,19 @@ export default function PlansPage() {
             >
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                onFocus={handleSafeFocus}
+                onBlur={handleSafeFocus}
                 placeholder="Buscar por nome do plano..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
-                aria-label="Buscar planos"
               />
             </form>
             <div className="flex gap-2 flex-wrap">
-              {/* Fix for the Sort dropdown accessibility issue */}
-              <div id={sortDropdownDescId} className="sr-only">Opções para ordenar os planos</div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="flex gap-2"
-                    aria-labelledby={sortDropdownId}
-                    aria-describedby={sortDropdownDescId}
-                  >
-                    <span id={sortDropdownId}>Ordenar por: {sortBy === "name" ? "Nome" : "Preço"}</span>
+                  <Button variant="outline" className="flex gap-2">
+                    Ordenar por: {sortBy === "name" ? "Nome" : "Preço"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -225,7 +254,6 @@ export default function PlansPage() {
                 size="icon"
                 onClick={toggleSortOrder}
                 className="h-10 w-10"
-                aria-label={`Alterar ordem de ${sortOrder === "asc" ? "ascendente" : "descendente"} para ${sortOrder === "asc" ? "descendente" : "ascendente"}`}
               >
                 <ArrowUpDown className="h-4 w-4" />
               </Button>
@@ -234,7 +262,7 @@ export default function PlansPage() {
                 size="icon"
                 onClick={toggleViewMode}
                 className="h-10 w-10"
-                aria-label={viewMode === "list" ? "Mudar para vista em grelha" : "Mudar para vista em lista"}
+                title={viewMode === "list" ? "Mudar para vista em grelha" : "Mudar para vista em lista"}
               >
                 {viewMode === "list" ? (
                   <LayoutGrid className="h-4 w-4" />
@@ -291,171 +319,151 @@ export default function PlansPage() {
               </p>
             </div>
           ) : (
-            plans.map((plan) => {
-              // Create unique IDs for each plan's dropdown
-              const moreOptionsIdForPlan = `more-options-${plan.id}`;
-              const moreOptionsDescIdForPlan = `more-options-desc-${plan.id}`;
-
-              return (
-                <Card
-                  key={plan.id}
-                  className={`overflow-hidden ${viewMode === "grid" && plan.isPopular ? "border-mgm-blue" : ""} ${viewMode === "grid" ? "flex flex-col hover:shadow-lg transition-shadow" : ""}`}
-                >
-                  {viewMode === "list" ? (
-                    <CardContent className="p-6">
-                      <div className="grid md:grid-cols-5 gap-4">
-                        <div className="space-y-1 md:col-span-2">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-lg">{plan.name}</p>
-                            {plan.isPopular && (
-                              <Badge className="bg-mgm-blue">Popular</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{plan.description || "-"}</p>
-                          <p className="text-xs">
-                            Criado em:{" "}
-                            {format(new Date(plan.createdAt), "dd MMM yyyy", { locale: ptBR })}
-                          </p>
-                        </div>
-                        <div className="flex items-center">
-                          <p className="font-medium">
-                            {plan.price.toLocaleString("pt-AO", {
-                              style: "currency",
-                              currency: "AOA",
-                            })}{" "}
-                            / {plan.period}
-                          </p>
-                        </div>
-                        <div className="flex items-center">{getStatusBadge(plan.status)}</div>
-                        <div className="flex justify-end items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
-                            onClick={() => handleEdit(plan)}
-                          >
-                            Editar
-                          </Button>
-                          {/* Hidden span for screen readers */}
-                          <span id={moreOptionsDescIdForPlan} className="sr-only">Opções adicionais para o plano {plan.name}</span>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                aria-labelledby={moreOptionsIdForPlan}
-                                aria-describedby={moreOptionsDescIdForPlan}
-                              >
-                                <span id={moreOptionsIdForPlan}>Mais</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDelete(plan.id)}
-                              >
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                      {plan.features.length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-sm font-medium">Funcionalidades:</p>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {plan.features.map((feature) => (
-                              <Badge
-                                key={feature.id}
-                                variant={feature.included ? "default" : "secondary"}
-                                className={
-                                  feature.included ? "bg-mgm-blue" : "bg-gray-200 text-gray-800"
-                                }
-                              >
-                                {feature.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  ) : (
-                    <>
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">{plan.name}</CardTitle>
+            plans.map((plan) => (
+              <Card
+                key={plan.id}
+                className={`overflow-hidden ${viewMode === "grid" && plan.isPopular ? "border-mgm-blue" : ""} ${viewMode === "grid" ? "flex flex-col hover:shadow-lg transition-shadow" : ""}`}
+              >
+                {viewMode === "list" ? (
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-5 gap-4">
+                      <div className="space-y-1 md:col-span-2">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-lg">{plan.name}</p>
                           {plan.isPopular && (
-                            <Badge className="bg-mgm-blue">Mais Popular</Badge>
+                            <Badge className="bg-mgm-blue">Popular</Badge>
                           )}
                         </div>
-                        <CardDescription>{plan.description || "-"}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-1">
-                        <div className="mb-4">
-                          <p className="text-2xl font-bold">
-                            {plan.price.toLocaleString("pt-AO", {
-                              style: "currency",
-                              currency: "AOA",
-                            })}
-                          </p>
-                          <p className="text-sm text-muted-foreground">{plan.period}</p>
+                        <p className="text-sm text-muted-foreground">{plan.description || "-"}</p>
+                        <p className="text-xs">
+                          Criado em:{" "}
+                          {format(new Date(plan.createdAt), "dd MMM yyyy", { locale: ptBR })}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        <p className="font-medium">
+                          {plan.price.toLocaleString("pt-AO", {
+                            style: "currency",
+                            currency: "AOA",
+                          })}{" "}
+                          / {plan.period}
+                        </p>
+                      </div>
+                      <div className="flex items-center">{getStatusBadge(plan.status)}</div>
+                      <div className="flex justify-end items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
+                          onClick={() => handleEdit(plan)}
+                        >
+                          Editar
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Mais
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDelete(plan.id)}
+                            >
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                    {plan.features.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium">Funcionalidades:</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {plan.features.map((feature) => (
+                            <Badge
+                              key={feature.id}
+                              variant={feature.included ? "default" : "secondary"}
+                              className={
+                                feature.included ? "bg-mgm-blue" : "bg-gray-200 text-gray-800"
+                              }
+                            >
+                              {feature.name}
+                            </Badge>
+                          ))}
                         </div>
-                        {plan.features.length > 0 && (
-                          <ul className="space-y-2">
-                            {plan.features.map((feature) => (
-                              <li key={feature.id} className="flex items-start gap-2">
-                                <Check className="h-5 w-5 text-mgm-blue mt-0.5" />
-                                <span>{feature.name}</span>
-                              </li>
-                            ))}
-                          </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                ) : (
+                  <>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg">{plan.name}</CardTitle>
+                        {plan.isPopular && (
+                          <Badge className="bg-mgm-blue">Mais Popular</Badge>
                         )}
-                      </CardContent>
-                      <CardFooter className="flex flex-col gap-2">
-                        <div className="flex gap-2 self-start">
-                          {getStatusBadge(plan.status)}
-                          <Badge className="bg-gray-200 text-gray-800">
-                            Criado: {format(new Date(plan.createdAt), "dd MMM yyyy", { locale: ptBR })}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-2 w-full">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
-                            onClick={() => handleEdit(plan)}
-                          >
-                            Editar
-                          </Button>
-                          {/* Hidden span for screen readers */}
-                          <span id={moreOptionsDescIdForPlan} className="sr-only">Opções adicionais para o plano {plan.name}</span>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                aria-labelledby={moreOptionsIdForPlan}
-                                aria-describedby={moreOptionsDescIdForPlan}
-                              >
-                                <span id={moreOptionsIdForPlan}>Mais</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDelete(plan.id)}
-                              >
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </CardFooter>
-                    </>
-                  )}
-                </Card>
-              );
-            })
+                      </div>
+                      <CardDescription>{plan.description || "-"}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <div className="mb-4">
+                        <p className="text-2xl font-bold">
+                          {plan.price.toLocaleString("pt-AO", {
+                            style: "currency",
+                            currency: "AOA",
+                          })}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{plan.period}</p>
+                      </div>
+                      {plan.features.length > 0 && (
+                        <ul className="space-y-2">
+                          {plan.features.map((feature) => (
+                            <li key={feature.id} className="flex items-start gap-2">
+                              <Check className="h-5 w-5 text-mgm-blue mt-0.5" />
+                              <span>{feature.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-2">
+                      <div className="flex gap-2 self-start">
+                        {getStatusBadge(plan.status)}
+                        <Badge className="bg-gray-200 text-gray-800">
+                          Criado: {format(new Date(plan.createdAt), "dd MMM yyyy", { locale: ptBR })}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2 w-full">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
+                          onClick={() => handleEdit(plan)}
+                        >
+                          Editar
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Mais
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDelete(plan.id)}
+                            >
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardFooter>
+                  </>
+                )}
+              </Card>
+            ))
           )}
         </div>
       )}
