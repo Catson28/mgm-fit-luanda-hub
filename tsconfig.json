@@ -1,3 +1,4 @@
+// tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -8,12 +9,14 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
+    "types": ["node"],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -34,6 +37,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    "src/types/**/*.d.ts",
     "src/services/types/next-auth.d.ts",
     "src/app/(ERP)/(dasboard)/(hr)/leaves-employee/page.tsx"
   ],

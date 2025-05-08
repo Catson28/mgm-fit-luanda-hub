@@ -1,0 +1,24 @@
+// app.d.ts (coloque na raiz do projeto)
+// Sobrescrevendo as definições de tipos do Next.js para route handlers
+
+import { NextRequest } from 'next/server';
+
+declare module 'next/server' {
+  interface NextRequestContext {
+    params: {
+      [key: string]: string | string[];
+    };
+  }
+}
+
+// Isso vai forçar o TypeScript a aceitar a estrutura correta de parâmetros
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      // Você pode adicionar variáveis de ambiente tipadas aqui
+      NODE_ENV: 'development' | 'production' | 'test';
+    }
+  }
+}
+
+export {};

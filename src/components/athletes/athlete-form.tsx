@@ -30,8 +30,6 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { AthleteStatus } from "@prisma/client";
 import { AthleteProps } from "@/components/pages/Atletas";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -205,7 +203,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
       toast({
         title: athlete ? "Atleta atualizado" : "Atleta criado",
         description: athlete
-          ? "As informações do atleta foram atual Wadas com sucesso."
+          ? "As informações do atleta foram atualizadas com sucesso."
           : "Novo atleta cadastrado com sucesso.",
       });
 
@@ -241,7 +239,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
         <FormField
           control={form.control}
           name="imageFile"
-          render={({ field: { onChange, ...field } }) => (
+          render={({ field: { onChange, value, ...field } }) => (
             <FormItem>
               <FormLabel>Foto do Atleta</FormLabel>
               <FormControl>
@@ -375,7 +373,6 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
                       </div>
                     ) : (
                       <>
-                        {/* O problema está aqui - não podemos ter value="" */}
                         <SelectItem value="null">Sem plano</SelectItem>
                         {plans.map((plan) => (
                           <SelectItem key={plan.id} value={plan.id}>
@@ -445,7 +442,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
                   <SelectContent>
                     <SelectItem value="ACTIVE">Ativo</SelectItem>
                     <SelectItem value="INACTIVE">Inativo</SelectItem>
-                    <SelectItem value="SUSPENDED">Suspenso</SelectItem>
+                    <SelectItem value="SUSPENDED">Susp obsessivo</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

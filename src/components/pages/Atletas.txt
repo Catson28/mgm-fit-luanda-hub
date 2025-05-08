@@ -65,14 +65,6 @@ export interface AthleteProps {
   createdAt: Date;
 }
 
-// Interface para os filtros
-interface FilterOptions {
-  status: string;
-  plan: string;
-  startDate: string;
-  endDate: string;
-}
-
 export default function AthletesPage() {
   const router = useRouter();
   const [athletes, setAthletes] = useState<AthleteProps[]>([]);
@@ -81,7 +73,7 @@ export default function AthletesPage() {
   const [openFilters, setOpenFilters] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteProps | null>(null);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+  const [filterOptions, setFilterOptions] = useState({
     status: "",
     plan: "",
     startDate: "",
@@ -166,13 +158,13 @@ export default function AthletesPage() {
     }
   };
 
-  const applyFilters = (filters: FilterOptions) => {
+  const applyFilters = (filters: unknown) => {
     setFilterOptions(filters);
     setOpenFilters(false);
     fetchFilteredAthletes(filters);
   };
 
-  const fetchFilteredAthletes = async (filters: FilterOptions) => {
+  const fetchFilteredAthletes = async (filters: unknown) => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams();

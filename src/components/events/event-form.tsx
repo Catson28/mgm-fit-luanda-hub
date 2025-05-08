@@ -33,7 +33,6 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select";
-// import Image from 'next/image';
 
 // Esquema de validação com Zod
 const eventSchema = z.object({
