@@ -342,20 +342,20 @@ export function EventForm({ event, onSuccess }: EventFormProps) {
           <FormField
             control={form.control}
             name="imageFile"
-            render={({ field: { onChange, ...field } }) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Imagem do Evento</FormLabel>
                 <FormControl>
                   <div className="flex items-center gap-2">
-                    <Input
+                    <input
                       type="file"
                       accept="image/jpeg,image/png,image/gif"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        onChange(file);
+                        field.onChange(file);
                         handleImageChange(file);
                       }}
-                      {...field}
+                      ref={field.ref}
                       className="flex-1"
                     />
                     {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}

@@ -87,16 +87,16 @@ export const {
     },  
     */
   session: { strategy: "jwt" },
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token", // Nome do cookie de sessão
-      options: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Usar HTTPS em produção
-        sameSite: "lax",
-        path: "/",
-      },
-    },
-  },
+  // cookies: {
+  //   sessionToken: {
+  //     name: "next-auth.session-token", // Nome do cookie de sessão
+  //     options: {
+  //       httpOnly: true,
+  //       secure: process.env.NODE_ENV === "production", // Usar HTTPS em produção
+  //       sameSite: "lax",
+  //       path: "/",
+  //     },
+  //   },
+  // },
   ...authConfig,
 });

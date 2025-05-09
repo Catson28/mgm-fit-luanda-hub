@@ -239,7 +239,7 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
         <FormField
           control={form.control}
           name="imageFile"
-          render={({ field: { onChange, value, ...field } }) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Foto do Atleta</FormLabel>
               <FormControl>
@@ -266,17 +266,17 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
                         <Upload className="h-8 w-8 text-white" />
                       </div>
                     </Avatar>
-                    <Input
+                    <input
                       id="image-upload"
                       type="file"
                       accept="image/jpeg,image/png,image/gif"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        onChange(file);
+                        field.onChange(file);
                         handleImageChange(file);
                       }}
-                      {...field}
+                      ref={field.ref}
                     />
                     {isUploading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
