@@ -28,19 +28,21 @@ const Features = () => {
     <section id="features" className="section bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-mgmred mb-12 text-center">Porquê escolher a MGM Fitness?</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`rounded-lg overflow-hidden shadow-lg animate-fade-in card-hover`}
             >
               <div className="h-48 overflow-hidden">
-                <Image fill  
-                  src={feature.icon} 
-                  alt={feature.title} 
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full ">
+                  <Image fill
+                    src={feature.icon}
+                    alt={feature.title}
+                    className="object-cover"
+                  />
+                </div>
               </div>
               <div className={`${feature.backgroundColor} p-6`}>
                 <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Layout } from "@/components/layout/Layout";
-import { PlusCircle, Search, SlidersHorizontal, ArrowUpDown, LayoutList, LayoutGrid } from "lucide-react";
+import { PlusCircle, Search, SlidersHorizontal, ArrowUpDown, LayoutList, LayoutGrid, MoreHorizontal, Phone, Calendar, CheckCircle, XCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -43,6 +44,7 @@ import { AthleteForm } from "@/components/athletes/athlete-form";
 import { AthleteFilters } from "@/components/athletes/athlete-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AthleteStatus } from "@prisma/client";
+// import { useMediaQuery } from "@/hooks/use-media-query";
 
 // Tipos para os dados do atleta
 interface Plan {
@@ -73,6 +75,24 @@ interface FilterOptions {
   endDate: string;
 }
 
+// Hook para detectar tamanho da tela
+const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+
+  return matches;
+};
+
 export default function AthletesPage() {
   const router = useRouter();
   const [athletes, setAthletes] = useState<AthleteProps[]>([]);
@@ -88,7 +108,11 @@ export default function AthletesPage() {
     endDate: "",
   });
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<string | null>(null);
+
+  // Verificar se é dispositivo móvel
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const fetchAthletes = useCallback(async () => {
     setIsLoading(true);
@@ -112,9 +136,13 @@ export default function AthletesPage() {
     fetchAthletes();
   }, [fetchAthletes]);
 
+  // Manter a preferência do usuário para o modo de visualização
+  // Não forçamos "list" em mobile, apenas melhoramos a experiência
+
   const handleEdit = (athlete: AthleteProps) => {
     setSelectedAthlete(athlete);
     setFormOpen(true);
+    setMobileMenuOpen(null); // Fechar menu móvel ao editar
   };
 
   const handleDelete = async (id: string) => {
@@ -130,6 +158,7 @@ export default function AthletesPage() {
 
         toast.success("Atleta excluído com sucesso.");
         fetchAthletes();
+        setMobileMenuOpen(null); // Fechar menu móvel após exclusão
       } catch (error) {
         console.error("Erro ao excluir atleta:", error);
         toast.error("Não foi possível excluir o atleta.");
@@ -160,6 +189,7 @@ export default function AthletesPage() {
 
       toast.success(`Atleta ${newStatus === "ACTIVE" ? "ativado" : "desativado"} com sucesso.`);
       fetchAthletes();
+      setMobileMenuOpen(null); // Fechar menu móvel após atualização
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       toast.error("Não foi possível atualizar o status do atleta.");
@@ -210,6 +240,10 @@ export default function AthletesPage() {
     setViewMode((prev) => (prev === "list" ? "grid" : "list"));
   };
 
+  const toggleMobileMenu = (id: string) => {
+    setMobileMenuOpen(mobileMenuOpen === id ? null : id);
+  };
+
   const getStatusBadge = (status: AthleteStatus) => {
     switch (status) {
       case "ACTIVE":
@@ -220,7 +254,7 @@ export default function AthletesPage() {
         );
       case "INACTIVE":
         return (
-          <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-green-100">
+          <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">
             Inativo
           </Badge>
         );
@@ -245,11 +279,11 @@ export default function AthletesPage() {
 
   return (
     <Layout>
-      <div className="mb-6">
+      <div className="mb-4 px-2 sm:px-0">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="font-heading text-3xl font-bold">Atletas</h1>
-            <p className="text-muted-foreground">Gerenciamento de membros do MGM Fitness</p>
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold">Atletas</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Gerenciamento de membros do MGM Fitness</p>
           </div>
           <Dialog open={formOpen} onOpenChange={setFormOpen}>
             <DialogTrigger asChild>
@@ -269,9 +303,9 @@ export default function AthletesPage() {
         </div>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
+      <Card className="mb-4 mx-2 sm:mx-0">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col md:flex-row gap-3">
             <form onSubmit={handleSearch} className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -281,7 +315,7 @@ export default function AthletesPage() {
                 className="pl-8"
               />
             </form>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="icon"
@@ -290,13 +324,14 @@ export default function AthletesPage() {
               >
                 <ArrowUpDown className="h-4 w-4" />
               </Button>
+              {/* Filtros como Sheet (melhor para mobile) */}
               <Sheet open={openFilters} onOpenChange={setOpenFilters}>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
                     <SlidersHorizontal className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent>
+                <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "h-[80vh]" : ""}>
                   <SheetHeader>
                     <SheetTitle>Filtros Avançados</SheetTitle>
                     <SheetDescription>
@@ -307,8 +342,12 @@ export default function AthletesPage() {
                     currentFilters={filterOptions}
                     onApplyFilters={applyFilters}
                   />
+                  <SheetFooter className="mt-4">
+                    <Button onClick={() => setOpenFilters(false)}>Cancelar</Button>
+                  </SheetFooter>
                 </SheetContent>
               </Sheet>
+              {/* Manter a opção de alternar entre Grid e List para todos dispositivos */}
               <Button
                 variant="outline"
                 size="icon"
@@ -328,24 +367,15 @@ export default function AthletesPage() {
       </Card>
 
       {isLoading ? (
-        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3"}>
+        <div className={viewMode === "list" ? "grid gap-2 px-2 sm:px-0" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3 px-2 sm:px-0"}>
           {[...Array(5)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               {viewMode === "list" ? (
-                <CardContent className="p-6 flex items-center">
-                  <Skeleton className="h-16 w-16 rounded-full mr-4" />
-                  <div className="grid md:grid-cols-5 flex-1 gap-4">
-                    <div className="space-y-2 md:col-span-2">
-                      <Skeleton className="h-4 w-[200px]" />
-                      <Skeleton className="h-4 w-[150px]" />
-                      <Skeleton className="h-3 w-[100px]" />
-                    </div>
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-20" />
-                    <div className="flex justify-end gap-2">
-                      <Skeleton className="h-8 w-16" />
-                      <Skeleton className="h-8 w-16" />
-                    </div>
+                <CardContent className="p-4 flex items-center">
+                  <Skeleton className="h-12 w-12 rounded-full mr-3" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-[140px] mb-2" />
+                    <Skeleton className="h-3 w-[100px]" />
                   </div>
                 </CardContent>
               ) : (
@@ -362,11 +392,11 @@ export default function AthletesPage() {
           ))}
         </div>
       ) : (
-        <div className={viewMode === "list" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3"}>
+        <div className={viewMode === "list" ? "grid gap-2 px-2 sm:px-0" : "grid gap-4 sm:grid-cols-2 md:grid-cols-3 px-2 sm:px-0"}>
           {athletes.length === 0 ? (
             <div className="text-center p-8 col-span-full">
               <p className="text-lg font-medium">Nenhum atleta encontrado</p>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Tente ajustar os filtros de busca ou adicione um novo atleta.
               </p>
             </div>
@@ -378,36 +408,43 @@ export default function AthletesPage() {
               >
                 {viewMode === "list" ? (
                   <CardContent className="p-0">
-                    <div className="flex items-center p-6">
-                      <Avatar className="h-16 w-16 mr-4">
+                    <div className="relative flex items-center p-3">
+                      <Avatar className="h-12 w-12 mr-3 flex-shrink-0">
                         <AvatarImage src={athlete.imageUrl || ""} />
-                        <AvatarFallback className="bg-mgm-blue text-white text-xl">
+                        <AvatarFallback className="bg-mgm-blue text-white">
                           {athlete.initials || athlete.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="grid md:grid-cols-5 flex-1 gap-4">
-                        <div className="space-y-1 md:col-span-2">
-                          <p className="font-medium text-lg">{athlete.name}</p>
-                          <p className="text-sm text-muted-foreground">{athlete.phone || "-"}</p>
-                          <p className="text-xs">
-                            Membro desde:{" "}
-                            {athlete.membershipStart
-                              ? format(new Date(athlete.membershipStart), "dd MMM yyyy", {
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-base truncate">{athlete.name}</h3>
+                          {athlete.status === "ACTIVE" ? (
+                            <Badge className="bg-green-500 text-white ml-2">Ativo</Badge>
+                          ) : (
+                            <Badge className="bg-red-500 text-white ml-2">Inativo</Badge>
+                          )}
+                        </div>
+                        <div className="flex flex-col mt-1 text-xs text-muted-foreground">
+                          <div className="flex items-center">
+                            <Phone className="h-3 w-3 mr-1" />
+                            <span className="truncate">{athlete.phone || "-"}</span>
+                          </div>
+                          <div className="flex items-center mt-1">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            <span>
+                              {athlete.membershipStart
+                                ? format(new Date(athlete.membershipStart), "dd MMM yyyy", {
                                   locale: ptBR,
                                 })
-                              : "-"}
-                          </p>
+                                : "-"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          {getPlanBadge(athlete.plan?.name)}
-                        </div>
-                        <div className="flex items-center">
-                          {getStatusBadge(athlete.status)}
-                        </div>
-                        <div className="flex justify-end items-center gap-2">
+                        <div className="flex items-center gap-2 mt-2">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="px-2 py-1 h-8 text-xs"
                             onClick={() => router.push(`/atletas/${athlete.id}`)}
                           >
                             Perfil
@@ -415,31 +452,77 @@ export default function AthletesPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
+                            className="px-2 py-1 h-8 text-xs bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
                             onClick={() => handleEdit(athlete)}
                           >
                             Editar
                           </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                Mais
+                          <Sheet
+                            open={mobileMenuOpen === athlete.id}
+                            onOpenChange={(open) => !open && setMobileMenuOpen(null)}
+                          >
+                            <SheetTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="px-2 h-8 ml-auto"
+                                onClick={() => toggleMobileMenu(athlete.id)}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleStatusToggle(athlete.id, athlete.status)}
-                              >
-                                {athlete.status === "ACTIVE" ? "Desativar" : "Ativar"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDelete(athlete.id)}
-                              >
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                            </SheetTrigger>
+                            <SheetContent side="bottom" className="h-auto max-h-[40vh]">
+                              <div className="py-4 flex flex-col gap-2">
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start"
+                                  onClick={() => router.push(`/atletas/${athlete.id}`)}
+                                >
+                                  Ver perfil completo
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start bg-mgm-blue/10 text-mgm-blue border-mgm-blue/20"
+                                  onClick={() => handleEdit(athlete)}
+                                >
+                                  Editar informações
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start"
+                                  onClick={() => handleStatusToggle(athlete.id, athlete.status)}
+                                >
+                                  {athlete.status === "ACTIVE" ? (
+                                    <>
+                                      <XCircle className="mr-2 h-4 w-4 text-red-500" />
+                                      Desativar atleta
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                      Ativar atleta
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  className="w-full justify-start mt-2"
+                                  onClick={() => handleDelete(athlete.id)}
+                                >
+                                  Excluir atleta
+                                </Button>
+                              </div>
+                              <SheetFooter>
+                                <Button
+                                  variant="outline"
+                                  className="w-full"
+                                  onClick={() => setMobileMenuOpen(null)}
+                                >
+                                  Cancelar
+                                </Button>
+                              </SheetFooter>
+                            </SheetContent>
+                          </Sheet>
                         </div>
                       </div>
                     </div>
@@ -463,8 +546,8 @@ export default function AthletesPage() {
                         <Badge className="bg-mgm-blue text-white">
                           {athlete.membershipStart
                             ? format(new Date(athlete.membershipStart), "dd MMM yyyy", {
-                                locale: ptBR,
-                              })
+                              locale: ptBR,
+                            })
                             : "-"}
                         </Badge>
                       </div>

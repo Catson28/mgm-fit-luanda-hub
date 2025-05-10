@@ -32,19 +32,21 @@ const Blog = () => {
     <section id="blog" className="section bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-mgmred mb-12 text-center">Dicas e notícias sobre fitness</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {posts.map((post, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="bg-white rounded-lg overflow-hidden shadow-md animate-fade-in card-hover"
             >
               <div className="h-48 overflow-hidden">
-                <Image fill  
-                  src={post.image} 
-                  alt={post.title} 
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  <Image fill
+                    src={post.image}
+                    alt={post.title}
+                    className="object-cover"
+                  />
+                </div>
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-2">{post.title}</h3>
@@ -52,8 +54,8 @@ const Blog = () => {
                   Por {post.author} · {post.date}
                 </p>
                 <p className="text-gray-700 mb-4">{post.excerpt}</p>
-                <a 
-                  href="#" 
+                <a
+                  href="#"
                   className="text-mgmblue font-bold flex items-center transition-colors hover:text-mgmred"
                 >
                   Ler mais <ArrowRight size={16} className="ml-1" />
