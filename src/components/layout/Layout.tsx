@@ -1,7 +1,6 @@
-
 import { ReactNode } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { SidebarProvidery } from '@/components/ui/sidebarContext';
+import { SidebarProvider } from '@/components/ui/sidebarContext';
 // import { AuthProvider } from '@/components/AuthProvider';
 import { Navbar } from '@/components/layout/Navbar';
 
@@ -11,7 +10,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <SidebarProvidery>
+    <SidebarProvider>
       <div className="flex min-h-screen bg-muted/30">
         <Sidebar />
         <div className="flex flex-col flex-grow">
@@ -21,6 +20,6 @@ export function Layout({ children }: LayoutProps) {
           </main>
         </div>
       </div>
-    </SidebarProvidery>
+    </SidebarProvider>
   );
 }

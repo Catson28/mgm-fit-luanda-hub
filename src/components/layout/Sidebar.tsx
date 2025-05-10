@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
+import { useSidebar } from '@/components/ui/sidebarContext';
 
 // Definindo interface para os itens de menu
 interface MenuItem {
@@ -18,13 +19,29 @@ interface MenuItem {
 }
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useSidebar();
   const [siteMenuOpen, setSiteMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
+  // Verificar tamanho da tela quando componente montar
+  useEffect(() => {
+    const checkScreenSize = () => {
+      if (window.innerWidth < 768) { // Considera telas menores que 768px como "pequenas"
+        setCollapsed(true);
+      }
+    };
+
+    // Verificar tamanho inicial da tela
+    checkScreenSize();
+
+    // Adicionar listener para mudanças de tamanho
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, [setCollapsed]);
 
   const toggleSiteMenu = () => {
     setSiteMenuOpen(!siteMenuOpen);
@@ -84,7 +101,7 @@ export function Sidebar() {
         )}
 
         <button
-          onClick={toggleSidebar}
+          onClick={() => setCollapsed(!collapsed)}
           className="p-1 rounded-full hover:bg-mgm-blue-dark transition-colors"
         >
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}

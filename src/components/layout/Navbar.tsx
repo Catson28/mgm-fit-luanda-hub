@@ -1,5 +1,5 @@
 "use client"
-import { Bell, User, Search } from 'lucide-react';
+import { Bell, User, Search, Menu } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +10,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/services/hooks/useAuth';
+import { useSidebar } from '@/components/ui/sidebarContext';
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { toggleSidebar } = useSidebar();
 
   const handleLogout = () => {
     logout();
@@ -21,7 +23,17 @@ export function Navbar() {
   return (
     <header className="bg-white border-b border-border sticky top-0 z-20">
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex-1 flex items-center max-w-md">
+        <div className="flex-1 flex items-center max-w-md gap-2">
+          {/* Botão "hamburger" para controlar o Sidebar */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="mr-2 text-muted-foreground hover:bg-muted/50"
+          >
+            <Menu size={20} />
+          </Button>
+
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
