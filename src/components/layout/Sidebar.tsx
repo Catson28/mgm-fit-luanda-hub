@@ -19,7 +19,7 @@ interface MenuItem {
 }
 
 export function Sidebar() {
-  const { collapsed, setCollapsed } = useSidebar();
+  const { collapsed, setCollapsed, visible } = useSidebar();
   const [siteMenuOpen, setSiteMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -92,7 +92,9 @@ export function Sidebar() {
     <aside
       className={cn(
         "bg-mgm-blue text-white transition-all duration-300 ease-in-out h-screen sticky top-0 z-30 flex flex-col",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : "w-64",
+        visible ? "translate-x-0" : "-translate-x-full",
+        !visible && "absolute" // Torna o sidebar absoluto quando está escondido para não ocupar espaço
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-mgm-blue-dark">

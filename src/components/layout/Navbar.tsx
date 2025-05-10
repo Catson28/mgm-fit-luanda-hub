@@ -1,5 +1,5 @@
 "use client"
-import { Bell, User, Search, Menu } from 'lucide-react';
+import { Bell, User, Search, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import { useSidebar } from '@/components/ui/sidebarContext';
 
 export function Navbar() {
   const { user, logout } = useAuth();
-  const { toggleSidebar } = useSidebar();
+  const { toggleVisibility, visible } = useSidebar();
 
   const handleLogout = () => {
     logout();
@@ -24,14 +24,16 @@ export function Navbar() {
     <header className="bg-white border-b border-border sticky top-0 z-20">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex-1 flex items-center max-w-md gap-2">
-          {/* Botão "hamburger" para controlar o Sidebar */}
+          {/* Botão "hamburger" para mostrar/ocultar o Sidebar */}
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleSidebar}
+            onClick={toggleVisibility}
             className="mr-2 text-muted-foreground hover:bg-muted/50"
+            aria-label={visible ? "Ocultar menu lateral" : "Mostrar menu lateral"}
+            title={visible ? "Ocultar menu lateral" : "Mostrar menu lateral"}
           >
-            <Menu size={20} />
+            {visible ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
           </Button>
 
           <div className="relative w-full">

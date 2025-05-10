@@ -34,7 +34,6 @@ export const useSidebar = () => {
   }
   return context;
 };
-*/
 
 "use client"
 import { createContext, useContext, useState, ReactNode } from 'react';
@@ -56,6 +55,55 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   return (
     <SidebarContext.Provider value={{ collapsed, setCollapsed, toggleSidebar }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+}
+
+export function useSidebar() {
+  const context = useContext(SidebarContext);
+  if (context === undefined) {
+    throw new Error('useSidebar must be used within a SidebarProvider');
+  }
+  return context;
+}
+*/
+
+"use client"
+import { createContext, useContext, useState, ReactNode } from 'react';
+
+interface SidebarContextType {
+  collapsed: boolean;
+  setCollapsed: (value: boolean) => void;
+  visible: boolean;
+  setVisible: (value: boolean) => void;
+  toggleSidebar: () => void;
+  toggleVisibility: () => void;
+}
+
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+
+export function SidebarProvider({ children }: { children: ReactNode }) {
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [visible, setVisible] = useState<boolean>(true);
+
+  const toggleSidebar = () => {
+    setCollapsed((prev) => !prev);
+  };
+
+  const toggleVisibility = () => {
+    setVisible((prev) => !prev);
+  };
+
+  return (
+    <SidebarContext.Provider value={{
+      collapsed,
+      setCollapsed,
+      visible,
+      setVisible,
+      toggleSidebar,
+      toggleVisibility
+    }}>
       {children}
     </SidebarContext.Provider>
   );
