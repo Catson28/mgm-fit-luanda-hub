@@ -136,13 +136,16 @@ export default function GalleryPage() {
                 <PlusCircle className="mr-2 h-4 w-4" /> Novo Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent
+              className="h-full w-full max-h-full overflow-y-auto sm:max-w-xl sm:h-auto sm:max-h-[90vh] p-4 flex flex-col">
               <DialogHeader>
                 <DialogTitle>
                   {selectedGalleryItem ? "Editar Item da Galeria" : "Novo Item da Galeria"}
                 </DialogTitle>
               </DialogHeader>
-              <GalleryForm galleryItem={selectedGalleryItem} onSuccess={handleFormSubmit} />
+              <div className="flex-1 overflow-y-auto">
+                <GalleryForm galleryItem={selectedGalleryItem} onSuccess={handleFormSubmit} />
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -219,56 +222,56 @@ export default function GalleryPage() {
           ) : (
             galleryItems.map((item) => (
               <Card key={item.id} className="overflow-hidden group hover:shadow-md transition-all duration-200">
-              {/* Imagem com overlay de botões ao passar o mouse */}
-              <div className="aspect-video relative overflow-hidden">
-                <Image fill 
-                  src={item.image.url}
-                  alt={item.title}
-                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                {/* Overlay com botões de ação que aparecem ao passar o mouse */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-mgm-blue hover:bg-mgm-blue hover:text-white"
-                    onClick={() => handleEdit(item)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-red-600 hover:bg-red-600 hover:text-white"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Excluir
-                  </Button>
+                {/* Imagem com overlay de botões ao passar o mouse */}
+                <div className="aspect-video relative overflow-hidden">
+                  <Image fill
+                    src={item.image.url}
+                    alt={item.title}
+                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  {/* Overlay com botões de ação que aparecem ao passar o mouse */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white text-mgm-blue hover:bg-mgm-blue hover:text-white"
+                      onClick={() => handleEdit(item)}
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white text-red-600 hover:bg-red-600 hover:text-white"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Conteúdo do card */}
-              <div className="p-4">
-                <h3 className="font-medium text-lg mb-1 line-clamp-1">{item.title}</h3>
-                
-                <div className="space-y-2">
-                  {/* Descrição com número limitado de linhas */}
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {item.description || "-"}
-                  </p>
-                  
-                  {/* Data formatada com ícone */}
-                  {item.date && (
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {format(new Date(item.date), "dd MMM yyyy", { locale: ptBR })}
-                    </div>
-                  )}
+
+                {/* Conteúdo do card */}
+                <div className="p-4">
+                  <h3 className="font-medium text-lg mb-1 line-clamp-1">{item.title}</h3>
+
+                  <div className="space-y-2">
+                    {/* Descrição com número limitado de linhas */}
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {item.description || "-"}
+                    </p>
+
+                    {/* Data formatada com ícone */}
+                    {item.date && (
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {format(new Date(item.date), "dd MMM yyyy", { locale: ptBR })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
             ))
           )}
         </div>

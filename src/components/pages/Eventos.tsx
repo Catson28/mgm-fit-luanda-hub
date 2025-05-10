@@ -190,11 +190,13 @@ export default function EventsPage() {
                 <PlusCircle className="mr-2 h-4 w-4" /> Novo Evento
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="h-full w-full max-h-full overflow-y-auto sm:max-w-xl sm:h-auto sm:max-h-[90vh] p-4 flex flex-col">
               <DialogHeader>
                 <DialogTitle>{selectedEvent ? "Editar Evento" : "Novo Evento"}</DialogTitle>
               </DialogHeader>
-              <EventForm event={selectedEvent} onSuccess={handleFormSubmit} />
+              <div className="flex-1 overflow-y-auto">
+                <EventForm event={selectedEvent} onSuccess={handleFormSubmit} />
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -368,7 +370,7 @@ export default function EventsPage() {
                 ) : (
                   <>
                     <div className="relative aspect-video">
-                      <Image fill 
+                      <Image fill
                         src={event.image?.url || "/placeholder.png"}
                         alt={event.title}
                         className="absolute inset-0 h-full w-full object-cover"

@@ -162,13 +162,15 @@ export default function Plans() {
               </Button>
             </DialogTrigger>
             <DialogContent
-              className="sm:max-w-xl"
+              className="h-full w-full max-h-full overflow-y-auto sm:max-w-xl sm:h-auto sm:max-h-[90vh] p-4 flex flex-col"
             // Removido os handlers de autofocus que estavam causando problemas
             >
               <DialogHeader>
                 <DialogTitle>{selectedPlan ? "Editar Plano" : "Novo Plano"}</DialogTitle>
               </DialogHeader>
-              <PlanForm plan={selectedPlan} onSuccess={handleFormSubmit} />
+              <div className="flex-1 overflow-y-auto">
+                <PlanForm plan={selectedPlan} onSuccess={handleFormSubmit} />
+              </div>
             </DialogContent>
           </Dialog>
         </div>
