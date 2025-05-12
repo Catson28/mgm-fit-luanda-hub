@@ -132,7 +132,10 @@ export async function PUT(request: NextRequest) {
     // Buscar plano atualizado com funcionalidades
     const updatedPlan = await db.plan.findUnique({
       where: { id },
-      include: { features: true },
+      include: {
+        features: true,
+        AthletePayment: true,
+      },
     });
 
     return NextResponse.json(updatedPlan);

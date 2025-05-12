@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyToken } from "@/lib/auth"; // Hypothetical auth utility
 import { z } from "zod";
@@ -67,12 +68,18 @@ interface AthleteResponse {
   updatedAt: string;
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// Interface para tipagem dos parâmetros
+interface RouteParams {
+  params: Promise<{ id: string }>; // params agora é um Promise
+}
+
+
+// Método GET
+export async function GET(request: NextRequest, context: RouteParams) {
+  const params = await context.params; // Resolver a Promise
+  const { id } = params;
   // Extrair e validar o ID
-  const parseResult = idSchema.safeParse(params.id);
+  const parseResult = idSchema.safeParse(id);
   if (!parseResult.success) {
     return NextResponse.json(
       { error: parseResult.error.errors[0].message },
@@ -92,11 +99,11 @@ export async function GET(
   // const token = authHeader.split(" ")[1];
 
 
-    const token = request.cookies.get('accessToken')?.value;
+  const token = request.cookies.get('accessToken')?.value;
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const user = await verifyToken(token); // Verifica o token
@@ -194,39 +201,39 @@ export async function GET(
       imageId: athlete.imageId,
       plan: athlete.plan
         ? {
-            id: athlete.plan.id,
-            name: athlete.plan.name,
-            price: Number(athlete.plan.price), // Convert Decimal to number
-            period: athlete.plan.period,
-            description: athlete.plan.description,
-            isPopular: athlete.plan.isPopular,
-            status: athlete.plan.status,
-            features: athlete.plan.features || [],
-          }
+          id: athlete.plan.id,
+          name: athlete.plan.name,
+          price: Number(athlete.plan.price), // Convert Decimal to number
+          period: athlete.plan.period,
+          description: athlete.plan.description,
+          isPopular: athlete.plan.isPopular,
+          status: athlete.plan.status,
+          features: athlete.plan.features || [],
+        }
         : null,
       person: athlete.person
         ? {
-            id: athlete.person.id,
-            name: athlete.person.name,
-            firstName: athlete.person.firstName,
-            lastName: athlete.person.lastName,
-            email: athlete.person.email,
-            address: athlete.person.address,
-            birthDate: athlete.person.birthDate
-              ? athlete.person.birthDate.toISOString()
-              : null,
-            phones: athlete.person.phones.map((phone) => ({
-              id: phone.id,
-              phone: phone.phone,
-            })),
-          }
+          id: athlete.person.id,
+          name: athlete.person.name,
+          firstName: athlete.person.firstName,
+          lastName: athlete.person.lastName,
+          email: athlete.person.email,
+          address: athlete.person.address,
+          birthDate: athlete.person.birthDate
+            ? athlete.person.birthDate.toISOString()
+            : null,
+          phones: athlete.person.phones.map((phone) => ({
+            id: phone.id,
+            phone: phone.phone,
+          })),
+        }
         : null,
       image: athlete.image
         ? {
-            id: athlete.image.id,
-            url: athlete.image.url,
-            publicId: athlete.image.publicId,
-          }
+          id: athlete.image.id,
+          url: athlete.image.url,
+          publicId: athlete.image.publicId,
+        }
         : null,
       eventRegistrations: athlete.eventRegistrations.map((registration) => ({
         id: registration.id,
@@ -242,10 +249,10 @@ export async function GET(
           status: registration.event.status,
           image: registration.event.image
             ? {
-                id: registration.event.image.id,
-                url: registration.event.image.url,
-                publicId: registration.event.image.publicId,
-              }
+              id: registration.event.image.id,
+              url: registration.event.image.url,
+              publicId: registration.event.image.publicId,
+            }
             : null,
         },
       })),

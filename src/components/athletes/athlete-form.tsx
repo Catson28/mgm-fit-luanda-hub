@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CalendarIcon, Loader2, Upload } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Loader2, Upload } from "lucide-react";
+// import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -15,11 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -32,6 +26,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { AthleteProps } from "@/components/pages/Atletas";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EnhancedDatePicker } from "@/components/athletes/EnhancedDatePicker"; // Ajuste o caminho conforme necessário
+
 
 // Definir esquema de validação com zod
 const athleteSchema = z.object({
@@ -67,6 +63,145 @@ interface AthleteFormProps {
   athlete: AthleteProps | null;
   onSuccess: () => void;
 }
+
+// Interface para o input personalizado do DatePicker
+// interface CustomDatePickerInputProps {
+//   value: string;
+//   onClick: () => void;
+//   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+//   onClear: (e: React.MouseEvent<HTMLButtonElement>) => void;
+//   [key: string]: any;
+// }
+
+// Componente personalizado para input do DatePicker
+// const CustomDatePickerInput = ({ value, onClick, onChange, onClear, ...props }: CustomDatePickerInputProps) => (
+//   <div className="relative w-full">
+//     <Input
+//       value={value}
+//       onClick={onClick}
+//       onChange={onChange}
+//       className="pl-3 pr-12 cursor-pointer"
+//       readOnly
+//       {...props}
+//     />
+//     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+//       {value && (
+//         <Button
+//           type="button"
+//           variant="ghost"
+//           size="sm"
+//           className="h-6 w-6 p-0"
+//           onClick={onClear}
+//         >
+//           <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+//         </Button>
+//       )}
+//       <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+//     </div>
+//   </div>
+// );
+
+// Interface para o cabeçalho do DatePicker
+// interface CustomDatePickerHeaderProps {
+//   date: Date;
+//   decreaseMonth: () => void;
+//   increaseMonth: () => void;
+//   prevMonthButtonDisabled: boolean;
+//   nextMonthButtonDisabled: boolean;
+// }
+
+// Componente personalizado para cabeçalho do calendário
+// const CustomDatePickerHeader = ({
+//   date,
+//   decreaseMonth,
+//   increaseMonth,
+//   prevMonthButtonDisabled,
+//   nextMonthButtonDisabled,
+// }: CustomDatePickerHeaderProps) => (
+//   <div className="flex justify-between items-center px-2 py-1.5">
+//     <Button
+//       onClick={decreaseMonth}
+//       disabled={prevMonthButtonDisabled}
+//       variant="ghost"
+//       size="sm"
+//       className="h-7 w-7 p-0"
+//     >
+//       <ChevronLeft className="h-4 w-4" />
+//     </Button>
+
+//     <span className="text-sm font-medium">
+//       {format(date, "MMMM yyyy", { locale: ptBR })}
+//     </span>
+
+//     <Button
+//       onClick={increaseMonth}
+//       disabled={nextMonthButtonDisabled}
+//       variant="ghost"
+//       size="sm"
+//       className="h-7 w-7 p-0"
+//     >
+//       <ChevronRight className="h-4 w-4" />
+//     </Button>
+//   </div>
+// );
+
+// Interface para o campo do formulário
+// interface FieldProps {
+//   value: Date | null;
+//   onChange: (date: Date | null) => void;
+// }
+
+// Componente DatePicker melhorado
+// const EnhancedDatePicker = ({ field }: { field: FieldProps }) => {
+//   const handleClearDate = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+//     e.stopPropagation();
+//     field.onChange(null);
+//   }, [field]);
+
+//   return (
+//     <DatePicker
+//       selected={field.value}
+//       onChange={(date: Date | null) => field.onChange(date)}
+//       dateFormat="dd/MM/yyyy"
+//       locale={ptBR}
+//       placeholderText="Selecione uma data"
+//       customInput={
+//         <CustomDatePickerInput
+//           value=""
+//           onClick={() => { }}
+//           onChange={() => { }}
+//           onClear={handleClearDate}
+//         />
+//       }
+//       renderCustomHeader={(props: CustomDatePickerHeaderProps) => <CustomDatePickerHeader {...props} />}
+//       showYearDropdown
+//       showMonthDropdown
+//       dropdownMode="select"
+//       yearDropdownItemNumber={15}
+//       className="w-full"
+//       popperClassName="react-datepicker-popper z-50"
+//       popperPlacement="bottom-start"
+//       popperModifiers={[
+//         {
+//           name: "offset",
+//           options: {
+//             offset: [0, 8]
+//           },
+//           fn: (state) => state // Adicionar a função fn para resolver o erro
+//         }
+//       ]}
+//       todayButton="Hoje"
+//       calendarClassName="bg-popover border border-border rounded-md shadow-md px-1.5 py-2"
+//       dayClassName={(date: Date) =>
+//         cn(
+//           "mx-0.5 rounded hover:bg-accent/70 transition-colors text-sm",
+//           field.value && date.getTime() === field.value.getTime() ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-accent"
+//         )
+//       }
+//       wrapperClassName="w-full"
+//     />
+//   );
+// };
 
 export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
   const { toast } = useToast();
@@ -357,9 +492,8 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
               <FormItem>
                 <FormLabel>Plano</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value || undefined}
-                  defaultValue={field.value || undefined}
+                  onValueChange={(value) => field.onChange(value === "null" ? null : value)}
+                  value={field.value ?? "null"}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -392,36 +526,11 @@ export function AthleteForm({ athlete, onSuccess }: AthleteFormProps) {
             control={form.control}
             name="membershipStart"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <FormLabel>Data de Início</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yyyy", { locale: ptBR })
-                        ) : (
-                          <span>Selecione uma data</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value || undefined}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <FormControl>
+                  <EnhancedDatePicker field={field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

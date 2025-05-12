@@ -6,7 +6,18 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DollarSign,
   Calendar,
   CreditCard,
   FileText,
@@ -20,6 +31,7 @@ import {
   X,
   ChevronLeft,
   Edit,
+  Plus,
 } from "lucide-react";
 import {
   Avatar,
@@ -87,6 +99,24 @@ interface Athlete {
       } | null;
     };
   }[];
+  athletePayments: {
+    id: string;
+    amount: string | null;
+    paymentDate: string | null;
+    paymentMethod: string | null;
+    reference: string | null;
+    status: string | null;
+    notes: string | null;
+  } | null;
+  trainingPeriods: {
+    id: string;
+    startDate: string | null;
+    endDate: string | null;
+    status: string | null;
+    attendanceDays: string | null;
+    actualAttendance: string | null;
+    notes: string | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -211,7 +241,7 @@ export default function AthletePage() {
   if (loading) {
     return (
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="col-span-1">
               <CardContent className="p-6 flex flex-col items-center">
@@ -242,7 +272,7 @@ export default function AthletePage() {
               </Card>
             </div>
           </div>
-        </div>
+        </>
       </Layout>
     );
   }
@@ -250,7 +280,7 @@ export default function AthletePage() {
   if (!athlete) {
     return (
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <>
           <Card>
             <CardContent className="p-6 text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-3">
@@ -269,7 +299,7 @@ export default function AthletePage() {
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </>
       </Layout>
     );
   }
@@ -281,253 +311,415 @@ export default function AthletePage() {
 
   return (
     <Layout>
-        {/* Cabeçalho */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center">
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex items-center mr-4"
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-            <h1 className="font-heading text-3xl font-bold text-gray-900">
-              Perfil do Atleta
-            </h1>
-          </div>
+      {/* Cabeçalho */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center">
           <Button
-            className="bg-mgm-blue hover:bg-mgm-blue-dark"
-            onClick={() => router.push(`/atletas/${athlete.id}/editar`)}
+            variant="outline"
+            onClick={() => router.back()}
+            className="flex items-center mr-4"
           >
-            <Edit className="h-4 w-4 mr-2" />
-            Editar Atleta
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Voltar
           </Button>
+          <h1 className="font-heading text-3xl font-bold text-gray-900">
+            Perfil do Atleta
+          </h1>
         </div>
+        <Button
+          className="bg-mgm-blue hover:bg-mgm-blue-dark"
+          onClick={() => router.push(`/atletas/${athlete.id}/editar`)}
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Editar Atleta
+        </Button>
+      </div>
 
-        {/* Conteúdo principal */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Coluna 1: Informações principais */}
-          <Card className="col-span-1">
-            <CardContent className="p-6 flex flex-col items-center">
-              <Avatar className="h-32 w-32 mb-4">
-                <AvatarImage src={athlete.image?.url || ""} alt={athlete.name} />
-                <AvatarFallback className="bg-mgm-blue text-white text-4xl">
-                  {athlete.initials || athlete.name.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <h2 className="text-2xl font-semibold text-gray-900 text-center">
-                {athlete.name}
-              </h2>
-              <div className="mt-2">{getAthleteStatusBadge(athlete.status)}</div>
-              <div className="mt-6 space-y-4 w-full">
-                {athlete.phone && (
-                  <div className="flex items-center">
-                    <Phone className="h-5 w-5 text-muted-foreground mr-2" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Telefone</p>
-                      <p className="text-gray-900">{athlete.phone}</p>
-                    </div>
+      {/* Conteúdo principal */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Coluna 1: Informações principais */}
+        <Card className="col-span-1">
+          <CardContent className="p-6 flex flex-col items-center">
+            <Avatar className="h-32 w-32 mb-4">
+              <AvatarImage src={athlete.image?.url || ""} alt={athlete.name} />
+              <AvatarFallback className="bg-mgm-blue text-white text-4xl">
+                {athlete.initials || athlete.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <h2 className="text-2xl font-semibold text-gray-900 text-center">
+              {athlete.name}
+            </h2>
+            <div className="mt-2">{getAthleteStatusBadge(athlete.status)}</div>
+            <div className="mt-6 space-y-4 w-full">
+              {athlete.phone && (
+                <div className="flex items-center">
+                  <Phone className="h-5 w-5 text-muted-foreground mr-2" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Telefone</p>
+                    <p className="text-gray-900">{athlete.phone}</p>
                   </div>
-                )}
-                {athlete.person && athlete.person.phones && athlete.person.phones.length > 0 && (
-                  <div className="flex items-center">
-                    <Phone className="h-5 w-5 text-muted-foreground mr-2" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Telefones Adicionais
+                </div>
+              )}
+              {athlete.person && athlete.person.phones && athlete.person.phones.length > 0 && (
+                <div className="flex items-center">
+                  <Phone className="h-5 w-5 text-muted-foreground mr-2" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Telefones Adicionais
+                    </p>
+                    {athlete.person.phones.map((phone) => (
+                      <p key={phone.id} className="text-gray-900">
+                        {phone.phone}
                       </p>
-                      {athlete.person.phones.map((phone) => (
-                        <p key={phone.id} className="text-gray-900">
-                          {phone.phone}
-                        </p>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                )}
-                {athlete.person?.email && (
-                  <div className="flex items-center">
-                    <Mail className="h-5 w-5 text-muted-foreground mr-2" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="text-gray-900 break-all">
-                        {athlete.person.email}
-                      </p>
-                    </div>
+                </div>
+              )}
+              {athlete.person?.email && (
+                <div className="flex items-center">
+                  <Mail className="h-5 w-5 text-muted-foreground mr-2" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-gray-900 break-all">
+                      {athlete.person.email}
+                    </p>
                   </div>
-                )}
-                {athlete.person?.birthDate && (
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-muted-foreground mr-2" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Data de Nascimento
-                      </p>
-                      <p className="text-gray-900">
-                        {formatDate(athlete.person.birthDate)}
-                      </p>
-                    </div>
+                </div>
+              )}
+              {athlete.person?.birthDate && (
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 text-muted-foreground mr-2" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Data de Nascimento
+                    </p>
+                    <p className="text-gray-900">
+                      {formatDate(athlete.person.birthDate)}
+                    </p>
                   </div>
-                )}
-                {athlete.person?.address && (
-                  <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-muted-foreground mr-2" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Endereço</p>
-                      <p className="text-gray-900">{athlete.person.address}</p>
-                    </div>
+                </div>
+              )}
+              {athlete.person?.address && (
+                <div className="flex items-center">
+                  <MapPin className="h-5 w-5 text-muted-foreground mr-2" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Endereço</p>
+                    <p className="text-gray-900">{athlete.person.address}</p>
                   </div>
-                )}
-                {athlete.membershipStart && (
-                  <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-muted-foreground mr-2" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Membro desde</p>
-                      <p className="text-gray-900">
-                        {formatDate(athlete.membershipStart)}
-                      </p>
-                    </div>
+                </div>
+              )}
+              {athlete.membershipStart && (
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 text-muted-foreground mr-2" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Membro desde</p>
+                    <p className="text-gray-900">
+                      {formatDate(athlete.membershipStart)}
+                    </p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Coluna 2: Plano e Eventos */}
-          <div className="col-span-1 md:col-span-2 space-y-8">
-            {/* Seção do plano */}
-            {athlete.plan && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <CreditCard className="h-5 w-5 text-mgm-blue mr-2" />
-                    Plano de Assinatura
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                        {athlete.plan.name}
-                        {athlete.plan.isPopular && (
-                          <Badge className="ml-2 bg-yellow-100 text-yellow-800">
-                            <Star className="h-3 w-3 mr-1" />
-                            Popular
-                          </Badge>
-                        )}
-                      </h3>
-                      <p className="text-muted-foreground">
-                        {athlete.plan.description || "Sem descrição"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        Kz {athlete.plan.price.toLocaleString("pt-BR")}
-                        <span className="text-sm font-normal text-muted-foreground">
-                          /{athlete.plan.period}
-                        </span>
-                      </p>
-                      {getPlanBadge(athlete.plan.name)}
-                    </div>
-                  </div>
-                  {athlete.plan.features && athlete.plan.features.length > 0 && (
-                    <div className="mt-6 border-t border-gray-200 pt-6">
-                      <h4 className="text-sm font-medium text-gray-900">
-                        Recursos incluídos
-                      </h4>
-                      <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {athlete.plan.features.map((feature) => (
-                          <li key={feature.id} className="flex items-center">
-                            {feature.included ? (
-                              <Check className="h-5 w-5 text-green-500 mr-2" />
-                            ) : (
-                              <X className="h-5 w-5 text-red-500 mr-2" />
-                            )}
-                            <span className="text-gray-700">{feature.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Seção de eventos */}
+        {/* Coluna 2: Plano e Eventos */}
+        <div className="col-span-1 md:col-span-2 space-y-8">
+          {/* Seção do plano */}
+          {athlete.plan && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Award className="h-5 w-5 text-mgm-blue mr-2" />
-                  Eventos
-                  <span className="ml-2 text-sm text-muted-foreground font-normal">
-                    ({athlete.eventRegistrations.length})
-                  </span>
+                  <CreditCard className="h-5 w-5 text-mgm-blue mr-2" />
+                  Plano de Assinatura
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {athlete.eventRegistrations.length === 0 ? (
-                  <div className="text-center py-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                      {athlete.plan.name}
+                      {athlete.plan.isPopular && (
+                        <Badge className="ml-2 bg-yellow-100 text-yellow-800">
+                          <Star className="h-3 w-3 mr-1" />
+                          Popular
+                        </Badge>
+                      )}
+                    </h3>
                     <p className="text-muted-foreground">
-                      Este atleta ainda não participou de nenhum evento.
+                      {athlete.plan.description || "Sem descrição"}
                     </p>
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    {sortedEvents.map((registration) => (
-                      <div
-                        key={registration.id}
-                        className="flex flex-col sm:flex-row border-b border-gray-200 pb-6 last:border-0 last:pb-0 gap-4"
-                      >
-                        <div className="sm:w-1/4">
-                          <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
-                            {registration.event.image ? (
-                              <Image fill 
-                                src={registration.event.image.url}
-                                alt={registration.event.title}
-                                className="object-cover w-full h-full"
-                              />
-                            ) : (
-                              <div className="flex items-center justify-center h-full">
-                                <FileText className="h-12 w-12 text-gray-400 TEAM=" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="sm:w-3/4">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                            <h3 className="text-lg font-medium text-gray-900">
-                              {registration.event.title}
-                            </h3>
-                            {getEventStatusBadge(registration.event.status)}
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground mb-3">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            {formatDate(registration.event.date)}
-                            {registration.event.location && (
-                              <>
-                                <span className="mx-2">•</span>
-                                <MapPin className="h-4 w-4 mr-1" />
-                                {registration.event.location}
-                              </>
-                            )}
-                          </div>
-                          {registration.event.description && (
-                            <p className="text-gray-700 mb-4">
-                              {registration.event.description}
-                            </p>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">
+                      Kz {athlete.plan.price.toLocaleString("pt-BR")}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        /{athlete.plan.period}
+                      </span>
+                    </p>
+                    {getPlanBadge(athlete.plan.name)}
+                  </div>
+                </div>
+                {athlete.plan.features && athlete.plan.features.length > 0 && (
+                  <div className="mt-6 border-t border-gray-200 pt-6">
+                    <h4 className="text-sm font-medium text-gray-900">
+                      Recursos incluídos
+                    </h4>
+                    <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {athlete.plan.features.map((feature) => (
+                        <li key={feature.id} className="flex items-center">
+                          {feature.included ? (
+                            <Check className="h-5 w-5 text-green-500 mr-2" />
+                          ) : (
+                            <X className="h-5 w-5 text-red-500 mr-2" />
                           )}
-                          <div className="text-sm text-muted-foreground">
-                            Registrado em: {formatDate(registration.registeredAt)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                          <span className="text-gray-700">{feature.name}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </CardContent>
             </Card>
-          </div>
+          )}
+
+          {/* Seção de Pagamentos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center">
+                    <DollarSign className="h-5 w-5 text-mgm-blue mr-2" />
+                    Pagamentos
+                    <span className="ml-2 text-sm text-muted-foreground font-normal">
+                      ({athlete.eventRegistrations.length})
+                    </span>
+                  </div>
+
+                  <Button
+                    className="bg-mgm-blue hover:bg-mgm-blue-dark"
+                    onClick={() => router.push(`/atletas/${athlete.id}/editar`)}
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Efectuar Pagamento
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {athlete.eventRegistrations.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    Este atleta ainda não participou de nenhum evento.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {sortedEvents.map((registration) => (
+                    <div
+                      key={registration.id}
+                      className="flex flex-col sm:flex-row border-b border-gray-200 pb-6 last:border-0 last:pb-0 gap-4"
+                    >
+                      <div className="sm:w-1/4">
+                        <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
+                          {registration.event.image ? (
+                            <Image fill
+                              src={registration.event.image.url}
+                              alt={registration.event.title}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <FileText className="h-12 w-12 text-gray-400 TEAM=" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="sm:w-3/4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {registration.event.title}
+                          </h3>
+                          {getEventStatusBadge(registration.event.status)}
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground mb-3">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {formatDate(registration.event.date)}
+                          {registration.event.location && (
+                            <>
+                              <span className="mx-2">•</span>
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {registration.event.location}
+                            </>
+                          )}
+                        </div>
+                        {registration.event.description && (
+                          <p className="text-gray-700 mb-4">
+                            {registration.event.description}
+                          </p>
+                        )}
+                        <div className="text-sm text-muted-foreground">
+                          Registrado em: {formatDate(registration.registeredAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Seção de Periodos de treinos */}
+          <Card>
+            <CardHeader>
+              <CardTitle >
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-mgm-blue mr-2" />
+                    Periodos de treinos
+                    <span className="ml-2 text-sm text-muted-foreground font-normal">
+                      ({athlete.eventRegistrations.length})
+                    </span>
+                  </div>
+
+                  <Button
+                    className="bg-mgm-blue hover:bg-mgm-blue-dark"
+                    onClick={() => router.push(`/atletas/${athlete.id}/editar`)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Periodo
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {athlete.eventRegistrations.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    Este atleta ainda não possui nenhum periodo de treinos.
+                  </p>
+                </div>
+              ) : (
+                <Tabs defaultValue="summary">
+                  <TabsList className="grid w-full grid-cols-7">
+                    <TabsTrigger value="summary">Resumo</TabsTrigger>
+                    <TabsTrigger value="movements">Movimentações</TabsTrigger>
+                    <TabsTrigger value="sales">Vendas</TabsTrigger>
+                    <TabsTrigger value="soldProducts">P/Vendidos</TabsTrigger>
+                    <TabsTrigger value="serviceProviders">Prestadores</TabsTrigger>
+                    <TabsTrigger value="consumedProducts">P/Consumidos</TabsTrigger>
+                    <TabsTrigger value="servicesPerformed">Serviços</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              )}
+
+              <Tabs defaultValue="summary">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="summary">Todos</TabsTrigger>
+                  <TabsTrigger value="movements">Movimentações</TabsTrigger>
+                </TabsList>
+                <TabsContent value="summary">
+                  <Table>
+                    <TableCaption>Lista de periodos de treinos deste atleta</TableCaption>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>YYYYYYY</TableCell>
+                        <TableCell>ZZZZZZZ</TableCell>
+                        <TableCell>AAAAAAA</TableCell>
+                        <TableCell>CCCCCCC</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                <TabsContent value="movements">
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* Seção de eventos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Award className="h-5 w-5 text-mgm-blue mr-2" />
+                Eventos
+                <span className="ml-2 text-sm text-muted-foreground font-normal">
+                  ({athlete.eventRegistrations.length})
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {athlete.eventRegistrations.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    Este atleta ainda não participou de nenhum evento.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {sortedEvents.map((registration) => (
+                    <div
+                      key={registration.id}
+                      className="flex flex-col sm:flex-row border-b border-gray-200 pb-6 last:border-0 last:pb-0 gap-4"
+                    >
+                      <div className="sm:w-1/4">
+                        <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
+                          {registration.event.image ? (
+                            <Image fill
+                              src={registration.event.image.url}
+                              alt={registration.event.title}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <FileText className="h-12 w-12 text-gray-400 TEAM=" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="sm:w-3/4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {registration.event.title}
+                          </h3>
+                          {getEventStatusBadge(registration.event.status)}
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground mb-3">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {formatDate(registration.event.date)}
+                          {registration.event.location && (
+                            <>
+                              <span className="mx-2">•</span>
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {registration.event.location}
+                            </>
+                          )}
+                        </div>
+                        {registration.event.description && (
+                          <p className="text-gray-700 mb-4">
+                            {registration.event.description}
+                          </p>
+                        )}
+                        <div className="text-sm text-muted-foreground">
+                          Registrado em: {formatDate(registration.registeredAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
+      </div>
     </Layout>
   );
 }

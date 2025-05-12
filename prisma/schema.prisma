@@ -201,6 +201,20 @@ enum ProductionStatus {
   CANCELED // Cancelado
 }
 
+enum PaymentPlanStatus {
+  PENDING // Pagamento pendente
+  COMPLETED // Pagamento concluído
+  OVERDUE // Pagamento atrasado
+  CANCELLED // Pagamento cancelado
+}
+
+enum TrainingPeriodStatus {
+  ACTIVE // Período de treino ativo
+  COMPLETED // Período de treino concluído
+  EXPIRED // Período de treino expirado
+  PAUSED // Período de treino pausado
+}
+
 // ======== MODELOS ========
 
 model Person {
@@ -752,6 +766,72 @@ model Product {
   @@map("products")
 }
 
+// Tabela de Pagamento - Registra as transações de pagamento para planos de atletas
+model AthletePayment {
+  id            String            @id @default(cuid())
+  athleteId     String // Atleta que fez o pagamento
+  planId        String // Plano que foi pago
+  amount        Decimal           @db.Decimal(10, 2) // Valor pago
+  paymentDate   DateTime          @default(now()) // Data do pagamento
+  paymentMethod PaymentMethod // Método de pagamento (reutilizando enum existente)
+  reference     String? // Referência do pagamento (ex.: número de recibo)
+  status        PaymentPlanStatus @default(COMPLETED)
+  notes         String? // Notas adicionais sobre o pagamento
+
+  // Relacionamentos
+  athlete         Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  plan            Plan             @relation(fields: [planId], references: [id], onDelete: Restrict)
+  trainingPeriods TrainingPeriod[] // Períodos de treino associados a este pagamento
+
+  // Metadados
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("athlete_payments")
+}
+
+// Tabela de Período de Treino - Registra as datas de início e término dos períodos de treino associados aos pagamentos
+model TrainingPeriod {
+  id               String               @id @default(cuid())
+  paymentId        String // Pagamento associado a este período
+  athleteId        String // Atleta deste período de treino
+  startDate        DateTime // Data de início do período de treino
+  endDate          DateTime // Data de término do período de treino
+  status           TrainingPeriodStatus @default(ACTIVE)
+  attendanceDays   Int? // Número de dias previstos para treino
+  actualAttendance Int? // Número de dias que o atleta realmente treinou
+  notes            String? // Notas adicionais
+
+  // Relacionamentos
+  payment     AthletePayment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  athlete     Athlete              @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  attendances TrainingAttendance[] // Registro de presenças individuais
+
+  // Metadados
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("training_periods")
+}
+
+// Presença em Treinos - Tabela opcional para rastrear presenças individuais durante um período de treino
+model TrainingAttendance {
+  id               String   @id @default(cuid())
+  trainingPeriodId String // Período de treino associado
+  attendanceDate   DateTime // Data da presença
+  isPresent        Boolean  @default(true)
+  notes            String? // Notas sobre a presença (ex.: chegou atrasado, saiu mais cedo)
+
+  // Relacionamentos
+  trainingPeriod TrainingPeriod @relation(fields: [trainingPeriodId], references: [id], onDelete: Cascade)
+
+  // Metadados
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("training_attendances")
+}
+
 // New Model: Athlete
 model Athlete {
   id              String        @id @default(cuid())
@@ -768,6 +848,8 @@ model Athlete {
   plan               Plan?               @relation(fields: [planId], references: [id], onDelete: SetNull)
   image              Image?              @relation(fields: [imageId], references: [id], onDelete: SetNull)
   eventRegistrations EventRegistration[] // Athletes registered for events
+  athletePayments    AthletePayment[]
+  trainingPeriods    TrainingPeriod[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
@@ -776,17 +858,18 @@ model Athlete {
 
 // New Model: Plan (refined for fitness plans)
 model Plan {
-  id          String        @id @default(cuid())
-  name        String // e.g., "Diário", "Mensal", "Anual"
-  price       Decimal       @db.Decimal(10, 2) // e.g., 1500 Kz
-  period      String // e.g., "Por dia", "Por mês"
-  description String? // e.g., "Acesso completo por um dia"
-  isPopular   Boolean       @default(false) // For highlighting popular plans
-  status      PlanStatus    @default(ACTIVE)
-  features    PlanFeature[] // List of features (e.g., "Acesso à musculação")
-  athletes    Athlete[] // Athletes subscribed to this plan
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String           @id @default(cuid())
+  name           String // e.g., "Diário", "Mensal", "Anual"
+  price          Decimal          @db.Decimal(10, 2) // e.g., 1500 Kz
+  period         String // e.g., "Por dia", "Por mês"
+  description    String? // e.g., "Acesso completo por um dia"
+  isPopular      Boolean          @default(false) // For highlighting popular plans
+  status         PlanStatus       @default(ACTIVE)
+  features       PlanFeature[] // List of features (e.g., "Acesso à musculação")
+  AthletePayment AthletePayment[]
+  athletes       Athlete[] // Athletes subscribed to this plan
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@map("plans")
 }
