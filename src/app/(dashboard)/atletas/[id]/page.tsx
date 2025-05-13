@@ -131,10 +131,13 @@ export default function AthletePage() {
     const fetchAthlete = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("accessToken");
+        // const token = localStorage.getItem("accessToken");
+        const cookieStore = await cookies();
+        const token = cookieStore.get('accessToken')?.value;
+        
         if (!token) {
           toast.error("Por favor, faça login para continuar.");
-          router.push("/login");
+          router.push("/atletas");
           return;
         }
 
