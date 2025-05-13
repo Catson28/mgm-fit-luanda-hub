@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Facebook, Instagram } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -48,8 +47,6 @@ const Footer = () => {
               <li><a href="#pricing" className="text-gray-300 hover:text-mgmred transition-colors">Preços</a></li>
               <li><a href="#blog" className="text-gray-300 hover:text-mgmred transition-colors">Blog</a></li>
               <li><a href="#contact" className="text-gray-300 hover:text-mgmred transition-colors">Contacto</a></li>
-
-
             </ul>
           </div>
 
@@ -77,7 +74,21 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-800 pt-8">
-          <p className="text-center text-mgmred">© 2025 MGM Fitness Luanda. Todos os direitos reservados.</p>
+          <p className="text-center text-mgmred">© {new Date().getFullYear()} MGM Fitness Luanda. Todos os direitos reservados.</p>
+          <div className="mt-3 text-center">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-1 md:gap-2 text-gray-400 text-sm">
+              <span>Desenvolvido com <span className="text-mgmred">❤️</span> por</span>
+              <a 
+                href="https://felicianocandieiro.vercel.app" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="hover:text-mgmred transition-colors duration-300 font-medium"
+                title="Visite meu portfólio"
+              >
+                Feliciano Candieiro
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

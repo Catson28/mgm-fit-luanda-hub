@@ -132,8 +132,19 @@ export function WebsiteLayout({ children }: WebsiteLayoutProps) {
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/20 mt-8 pt-4 text-center text-white/60">
-            <p>© {new Date().getFullYear()} MGM Fitness Luanda. Todos os direitos reservados.</p>
+          <div className="border-t border-white/20 mt-8 pt-4 text-center">
+            <p className="text-white/60">© {new Date().getFullYear()} MGM Fitness Luanda. Todos os direitos reservados.</p>
+            <div className="text-white/50 text-sm mt-2 flex flex-col md:flex-row md:justify-center md:items-center gap-1 md:gap-2">
+              <span>Desenvolvido com ❤️ por</span>
+              <a 
+                href="https://felicianocandieiro.vercel.app" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="hover:text-white transition-colors duration-300 font-medium"
+              >
+                Feliciano Candieiro
+              </a>
+            </div>
           </div>
         </div>
       </footer>
