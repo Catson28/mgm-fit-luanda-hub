@@ -1,11 +1,13 @@
+// src/app/(dashboard)/atletas/[id]/AthleteProfile.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Layout } from "@/components/layout/Layout";
+// Corrigindo a importação do Layout
+import {Layout} from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -121,50 +123,21 @@ interface Athlete {
   updatedAt: string;
 }
 
-export default function AthletePage() {
-  const params = useParams();
+interface AthleteProfileProps {
+  athlete: Athlete | null;
+  error: string | null;
+  params: { id: string };
+}
+
+export default function AthleteProfile({ athlete, error, params }: AthleteProfileProps) {
   const router = useRouter();
-  const [athlete, setAthlete] = useState<Athlete | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAthlete = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          toast.error("Por favor, faça login para continuar.");
-          router.push("/atletas");
-          return;
-        }
-
-        const response = await fetch(`/api/atletas/${params.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Erro ao carregar atleta");
-        }
-
-        const data = await response.json();
-        setAthlete(data);
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Erro desconhecido ao carregar atleta"
-        );
-        console.error("Erro ao buscar dados do atleta:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (params.id) {
-      fetchAthlete();
+    if (error) {
+      toast.error(error);
+      router.push("/atletas");
     }
-  }, [params.id, router]);
+  }, [error, router]);
 
   // Função auxiliar para formatar data
   const formatDate = (dateString: string | null) => {
@@ -237,69 +210,27 @@ export default function AthletePage() {
     return <Badge className="bg-gray-500">{planName}</Badge>;
   };
 
-  // Renderização de estados de loading
-  if (loading) {
-    return (
-      <Layout>
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="col-span-1">
-              <CardContent className="p-6 flex flex-col items-center">
-                <Skeleton className="h-32 w-32 rounded-full mb-4" />
-                <Skeleton className="h-8 w-64 mb-2" />
-                <Skeleton className="h-4 w-48 mb-4" />
-                <div className="space-y-4 w-full">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-full" />
-                </div>
-              </CardContent>
-            </Card>
-            <div className="col-span-1 md:col-span-2 space-y-8">
-              <Card>
-                <CardContent className="p-6">
-                  <Skeleton className="h-8 w-64 mb-4" />
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-6 w-48" />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <Skeleton className="h-8 w-64 mb-4" />
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-6 w-48" />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </>
-      </Layout>
-    );
-  }
-
   if (!athlete) {
     return (
       <Layout>
-        <>
-          <Card>
-            <CardContent className="p-6 text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">
-                Atleta não encontrado
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                Não foi possível encontrar informações para este atleta.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => router.back()}
-                className="flex items-center mx-auto"
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
-            </CardContent>
-          </Card>
-        </>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">
+              Atleta não encontrado
+            </h2>
+            <p className="text-muted-foreground mb-4">
+              Não foi possível encontrar informações para este atleta.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="flex items-center mx-auto"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </CardContent>
+        </Card>
       </Layout>
     );
   }
@@ -523,14 +454,15 @@ export default function AthletePage() {
                       <div className="sm:w-1/4">
                         <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
                           {registration.event.image ? (
-                            <Image fill
+                            <Image 
                               src={registration.event.image.url}
                               alt={registration.event.title}
                               className="object-cover w-full h-full"
+                              fill
                             />
                           ) : (
                             <div className="flex items-center justify-center h-full">
-                              <FileText className="h-12 w-12 text-gray-400 TEAM=" />
+                              <FileText className="h-12 w-12 text-gray-400" />
                             </div>
                           )}
                         </div>
@@ -572,7 +504,7 @@ export default function AthletePage() {
           {/* Seção de Periodos de treinos */}
           <Card>
             <CardHeader>
-              <CardTitle >
+              <CardTitle>
                 <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center">
                     <Calendar className="h-5 w-5 text-mgm-blue mr-2" />
@@ -610,38 +542,31 @@ export default function AthletePage() {
                     <TabsTrigger value="consumedProducts">P/Consumidos</TabsTrigger>
                     <TabsTrigger value="servicesPerformed">Serviços</TabsTrigger>
                   </TabsList>
+                  <TabsContent value="summary">
+                    <Table>
+                      <TableCaption>Lista de periodos de treinos deste atleta</TableCaption>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell>YYYYYYY</TableCell>
+                          <TableCell>ZZZZZZZ</TableCell>
+                          <TableCell>AAAAAAA</TableCell>
+                          <TableCell className="text-right">CCCCCCC</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TabsContent>
+                  <TabsContent value="movements">
+                  </TabsContent>
                 </Tabs>
               )}
-
-              <Tabs defaultValue="summary">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="summary">Todos</TabsTrigger>
-                  <TabsTrigger value="movements">Movimentações</TabsTrigger>
-                </TabsList>
-                <TabsContent value="summary">
-                  <Table>
-                    <TableCaption>Lista de periodos de treinos deste atleta</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead className="text-right">Valor</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>YYYYYYY</TableCell>
-                        <TableCell>ZZZZZZZ</TableCell>
-                        <TableCell>AAAAAAA</TableCell>
-                        <TableCell>CCCCCCC</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                <TabsContent value="movements">
-                </TabsContent>
-              </Tabs>
             </CardContent>
           </Card>
 
@@ -673,14 +598,15 @@ export default function AthletePage() {
                       <div className="sm:w-1/4">
                         <div className="relative h-40 w-full rounded-lg overflow-hidden bg-gray-100">
                           {registration.event.image ? (
-                            <Image fill
+                            <Image
                               src={registration.event.image.url}
                               alt={registration.event.title}
                               className="object-cover w-full h-full"
+                              fill
                             />
                           ) : (
                             <div className="flex items-center justify-center h-full">
-                              <FileText className="h-12 w-12 text-gray-400 TEAM=" />
+                              <FileText className="h-12 w-12 text-gray-400" />
                             </div>
                           )}
                         </div>

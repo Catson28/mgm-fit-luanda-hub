@@ -1,0 +1,117 @@
+// src/app/(dashboard)/atletas/[id]/page.tsx
+import { cookies } from 'next/headers';
+import AthleteProfile from './AthleteProfile';
+import { toast } from 'sonner';
+
+// Tipagem baseada no retorno da API
+interface Athlete {
+  id: string;
+  name: string;
+  initials: string | null;
+  phone: string | null;
+  membershipStart: string | null;
+  status: string;
+  planId: string | null;
+  personId: string | null;
+  imageId: string | null;
+  plan: {
+    id: string;
+    name: string;
+    price: number;
+    period: string;
+    description: string | null;
+    isPopular: boolean;
+    status: string;
+    features: { id: string; name: string; included: boolean }[] | null;
+  } | null;
+  person: {
+    id: string;
+    name: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    address: string | null;
+    birthDate: string | null;
+    phones: { id: string; phone: string }[];
+  } | null;
+  image: {
+    id: string;
+    url: string;
+    publicId: string | null;
+  } | null;
+  eventRegistrations: {
+    id: string;
+    eventId: string;
+    athleteId: string;
+    registeredAt: string;
+    event: {
+      id: string;
+      title: string;
+      description: string | null;
+      date: string;
+      location: string | null;
+      status: string;
+      image: {
+        id: string;
+        url: string;
+        publicId: string | null;
+      } | null;
+    };
+  }[];
+  athletePayments: {
+    id: string;
+    amount: string | null;
+    paymentDate: string | null;
+    paymentMethod: string | null;
+    reference: string | null;
+    status: string | null;
+    notes: string | null;
+  } | null;
+  trainingPeriods: {
+    id: string;
+    startDate: string | null;
+    endDate: string | null;
+    status: string | null;
+    attendanceDays: string | null;
+    actualAttendance: string | null;
+    notes: string | null;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AthletePageProps {
+  params: { id: string };
+}
+
+export default async function AthletePage({ params }: AthletePageProps) {
+  let athlete: Athlete | null = null;
+  let error: string | null = null;
+
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get('accessToken')?.value;
+
+    if (!token) {
+      error = "Por favor, faça login para continuar.";
+    } else {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/atletas/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erro ao carregar atleta");
+      }
+
+      athlete = await response.json();
+    }
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Erro desconhecido ao carregar atleta";
+    console.error("Erro ao buscar dados do atleta:", err);
+  }
+
+  return <AthleteProfile athlete={athlete} error={error} params={params} />;
+}
